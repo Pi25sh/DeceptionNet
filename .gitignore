@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Node / build output
+node_modules/
+dist/
+dist-ssr/
+
+# Secrets & local config
+.env
+*.local
+.claude/
+
+# Generated artifacts (PDF reports, logs, dev DBs)
+data/
+*.log
+*.db
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
