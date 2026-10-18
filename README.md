@@ -452,12 +452,14 @@ deceptionnet/
 
 ### Running Tests (84 passing tests)
 
-Core API unit and benchmark tests cover the MITRE rule table (32 rules, 49 signatures), scoring formula, session correlation, inter-annotator Kappa, grounding filter ablation, baselines, and NAT boundary cases. They use an in-memory SQLite database — no Docker required.
+Core API automated tests cover the MITRE rule table (32 rules, 49 signatures), scoring formulas, session correlation, and schema fixtures using an in-memory SQLite database — no Docker required.
 
 ```bash
-cd core-api
-pip install -r requirements-dev.txt
-pytest -v
+# Install dependencies (self-contained dev requirements)
+pip install -r core-api/requirements-dev.txt
+
+# Run all 84 unit and integration tests
+pytest core-api/tests -v
 ```
 
 ### Computing Benchmark Metrics & Ablation (Standalone CLI)
