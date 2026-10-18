@@ -1,13 +1,13 @@
 """Update DeceptionNet_Synopsis_Final_v2.tex:
 1. Fix citation alignment in Chapter 2 so citations match Spitzner [1], Fraunholz [2], MITRE [3], Provos & Holz [4], Almeshekah & Spafford [5], etc.
 2. Build out the literature review across the 5 thematic domains with proper references.
-3. Add repository URL and commit SHA (b03b1619b26a36135ca752673b42a6b935771a5b).
+3. Add repository URL and commit SHA (3b7c0e51c1e14de85b1d3ba8433402ff12b9902c).
 4. Update remaining tasks / progress to reflect 100% completion of Items 2, 3, 6, and 7.
 """
 import os
 
 REPO_URL = "https://github.com/Pi25sh/DeceptionNet"
-COMMIT_SHA = "b03b1619b26a36135ca752673b42a6b935771a5b"
+COMMIT_SHA = "3b7c0e51c1e14de85b1d3ba8433402ff12b9902c"
 
 SYNOP_SRC = r"C:\Users\piyus\Downloads\DeceptionNet_Synopsis_Final_v2.tex"
 SYNOP_DST = r"d:\deciptionnet\docs\DeceptionNet_Synopsis.tex"
@@ -38,6 +38,10 @@ def update_synopsis(path):
 
     with open(path, "r", encoding="utf-8") as f:
         text = f.read()
+
+    # Replace old commit SHA
+    import re
+    text = re.sub(r"b03b1619b26a36135ca752673b42a6b935771a5b", COMMIT_SHA, text)
 
     # 1. Add repo link and commit to cover page
     repo_block = (

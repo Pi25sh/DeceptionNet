@@ -3,13 +3,13 @@
 2. Strip obsolete notes and roadmap markers.
 3. Build out Chapter 3 Literature Review with 5 thematic domains and state-of-the-art matrix.
 4. Add multi-week T-Pot public VM event counts, ablation study, baselines, and correlation boundary evaluation.
-5. Add repository link with verified commit hash (b03b1619b26a36135ca752673b42a6b935771a5b).
+5. Add repository link with verified commit hash (3b7c0e51c1e14de85b1d3ba8433402ff12b9902c).
 """
 import os
 import re
 
 REPO_URL = "https://github.com/Pi25sh/DeceptionNet"
-COMMIT_SHA = "b03b1619b26a36135ca752673b42a6b935771a5b"
+COMMIT_SHA = "3b7c0e51c1e14de85b1d3ba8433402ff12b9902c"
 COMMIT_URL = f"https://github.com/Pi25sh/DeceptionNet/tree/{COMMIT_SHA}"
 
 TARGET_FILES = [
@@ -271,6 +271,9 @@ def update_report(file_path):
 
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
+
+    # Replace any previous commit hash
+    content = re.sub(r"[a-f0-9]{40}", lambda m: COMMIT_SHA if m.group(0) == "b03b1619b26a36135ca752673b42a6b935771a5b" else m.group(0), content)
 
     # 1. Add repo link and commit to Abstract
     repo_snippet = (

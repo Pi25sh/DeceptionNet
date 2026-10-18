@@ -4,7 +4,8 @@
 
 # DeceptionNet
 
-> **Multi-service honeypot and deception platform with real-time MITRE ATT&CK mapping, AI-powered analysis, and live dashboard visualization.**
+> **Multi-service honeypot and deception platform with real-time MITRE ATT&CK mapping, AI-powered analysis, and live dashboard visualization.**  
+> **Repository:** [https://github.com/Pi25sh/DeceptionNet](https://github.com/Pi25sh/DeceptionNet) | **Verified Commit:** [`3b7c0e5`](https://github.com/Pi25sh/DeceptionNet/tree/3b7c0e51c1e14de85b1d3ba8433402ff12b9902c)
 
 </div>
 
@@ -20,7 +21,7 @@ DeceptionNet is an AI-orchestrated honeypot and attacker behavior profiling plat
                           │                                                 │
   Attacker ──────────►┌───┴────┐    ┌──────────┐    ┌──────────────────┐   │
   (attacker)          │forwarder│───►│ core-api │───►│   ai-service     │   │
-                      │(bridge) │    │ :8000    │    │ :8001 (Claude)   │   │
+                      │(bridge) │    │ :8000    │    │ :8001 (Gemini/Cl)│   │
   ┌─────────────┐     └───┬────┘    └────┬─────┘    └──────────────────┘   │
   │ attack-target│────────┘              │                                  │
   │ :9090        │              ┌────────▼────────┐    ┌──────────────┐    │
@@ -55,7 +56,7 @@ Attacker traffic
                    ┌──────────────┐                                       ┌──────────────┐
                    │  PostgreSQL  │                                       │  ai-service  │
                    │  sessions +  │                                       │  :8001       │
-                   │  events      │                                       │  Claude API  │
+                   │  events      │                                       │  Gemini/Claude  │
                    └──────┬───────┘                                       │  FAISS index │
                           │                                                └──────────────┘
                           ▼
@@ -523,9 +524,14 @@ ports:
 ```
 
 ### AI Service returns mock summaries
-Set your Anthropic API key in `.env`:
+Configure your Google Gemini API key (primary) or Anthropic Claude key (fallback) in `.env`:
 ```bash
-echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
+# Google Gemini 2.5 Flash (Primary)
+echo "GEMINI_API_KEY=AIzaSy..." >> .env
+
+# Anthropic Claude 3 Haiku (Architectural Fallback)
+echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
+
 docker compose restart ai-service
 ```
 
@@ -551,4 +557,4 @@ This project was built for educational purposes as part of a cybersecurity cours
 
 ---
 
-*Built with FastAPI, PostgreSQL, Claude AI, React, Docker, and MITRE ATT&CK.*
+*Built with FastAPI, PostgreSQL, Google Gemini 2.5 Flash / Claude, React, Docker, and MITRE ATT&CK.*

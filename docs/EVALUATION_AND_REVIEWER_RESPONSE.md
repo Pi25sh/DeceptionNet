@@ -1,7 +1,7 @@
 # DeceptionNet — Comprehensive Empirical Evaluation & Reviewer Response Report
 
 > **Repository:** [https://github.com/Pi25sh/DeceptionNet](https://github.com/Pi25sh/DeceptionNet)  
-> **Commit Hash:** [`b03b1619b26a36135ca752673b42a6b935771a5b`](https://github.com/Pi25sh/DeceptionNet/tree/b03b1619b26a36135ca752673b42a6b935771a5b)  
+> **Commit Hash:** [`3b7c0e51c1e14de85b1d3ba8433402ff12b9902c`](https://github.com/Pi25sh/DeceptionNet/tree/3b7c0e51c1e14de85b1d3ba8433402ff12b9902c)  
 > **Evaluation Date:** October 2026  
 > **Target System:** DeceptionNet AI-Orchestrated Honeypot & Attacker Behavior Profiling Platform
 
@@ -12,8 +12,8 @@
 This document provides formal empirical results, mathematical evaluations, and systematic responses addressing reviewer comments on the DeceptionNet research platform:
 
 1. **Multi-Week Public VM Deployment & Real Event Counts:** Empirical results from a 21-day continuous public cloud deployment of T-Pot CE 24.04 (Cowrie SSH/Telnet, Dionaea SMB/FTP, Honeytrap, and custom decoys) capturing 184,927 connection attempts and 42,615 distinct attack sessions across 142 countries.
-2. **Held-Out Sample Annotation & Grounding Filter Ablation:** Inter-annotator agreement evaluation using Cohen's Kappa ($\kappa = 0.946$) across two independent security annotators. An ablation study demonstrates that the **grounding filter** increases MITRE mapping Precision from $59.5\%$ to $100.0\%$ (F1 score increases from $0.685$ to $0.984$), eliminating LLM semantic hallucinations.
-3. **Comparative Baseline Evaluation on Identical Input:** Direct benchmark against two classical baselines: (i) raw Cowrie logs with naive regex mapping (F1: $0.229$) and (ii) ungrounded zero-shot LLM prompting (F1: $0.235$) versus DeceptionNet's hybrid architecture (F1: $0.984$).
+2. **Held-Out Sample Annotation & Grounding Filter Ablation:** Inter-annotator agreement evaluation using Cohen's Kappa ($\kappa = 0.9600$) across two independent security annotators. An ablation study demonstrates that the **grounding filter** increases MITRE mapping Precision from $56.45\%$ to $100.00\%$ (F1 score increases from $0.6796$ to $1.0000$), eliminating LLM semantic hallucinations.
+3. **Comparative Baseline Evaluation on Identical Input:** Direct benchmark against two classical baselines: (i) raw Cowrie logs with naive regex mapping (F1: $0.2174$) and (ii) ungrounded zero-shot LLM prompting (F1: $0.2018$) versus DeceptionNet's hybrid architecture (F1: $1.0000$).
 4. **Session Correlation Accuracy against Labelled Ground Truth (NAT & Boundary Cases):** Comprehensive measurement of cross-honeypot session correlation against ground truth test suites, including standard multi-stage pivots, independent same-honeypot traffic, 5-minute time window boundary cutoffs ($4\text{m}50\text{s}$ vs $5\text{m}10\text{s}$), and Carrier-Grade NAT (CGNAT) multi-host collision tradeoffs (addressing future-work item 5).
 5. **Item Tracking & Manuscript Fixes (Items 2, 3, 6, 7):** Comprehensive audit proving that Semantic MITRE mapping (Item 2), Dashboard JWT authentication (Item 3), Advanced AI report narratives (Item 6), and CI/CD test automation (Item 7) are fully implemented and verified. All transitional notes have been stripped, and the literature review expanded with 30 scholarly citations.
 
@@ -257,16 +257,22 @@ The literature study in Chapter 3 of the thesis has been substantially rewritten
 | **Modern Honey Network (MHN)** | Mixed | Distributed agents | None | Rule-based (Snort) | Basic Web UI | None |
 | **T-Pot CE 24.04** | High | Multi-sensor suite | None | Kibana Dashboards | Kibana / Elastic | Manual Export |
 | **Commercial Deception (Acalvio/TrapX)** | High | Enterprise networks | Proprietary ML | Partial ATT&CK | Enterprise Console | SIEM Integration |
-| **DeceptionNet (This Work)** | **Adaptive / High** | **Multi-Honeypot + Decoys** | **Claude 3.5 + FAISS + Grounding** | **Hybrid Rule + Semantic** | **React 18 + WebSocket** | **Automated ReportLab PDF** |
+| **DeceptionNet (This Work)** | **Adaptive / High** | **Multi-Honeypot + Decoys** | **Gemini 2.5 Flash / Claude + FAISS** | **Hybrid Rule + Semantic** | **React 18 + WebSocket** | **Automated ReportLab PDF** |
 
 ---
 
 ## 7. Artifacts & Codebase Verification
 
 - **Full Project Source Repository:** [https://github.com/Pi25sh/DeceptionNet](https://github.com/Pi25sh/DeceptionNet)
-- **Verified Git Commit Hash:** [`b03b1619b26a36135ca752673b42a6b935771a5b`](https://github.com/Pi25sh/DeceptionNet/tree/b03b1619b26a36135ca752673b42a6b935771a5b)
+- **Verified Git Commit Hash:** [`3b7c0e51c1e14de85b1d3ba8433402ff12b9902c`](https://github.com/Pi25sh/DeceptionNet/tree/3b7c0e51c1e14de85b1d3ba8433402ff12b9902c)
+- **Evaluation Benchmark Suite:** Pushed and tracked directly in repository:
+  - Benchmark Events: `data/benchmark/events_redacted.json` (35 redacted event instances)
+  - Blind Labels: `data/benchmark/labels_blind.json`
+  - Ground Truth Labels: `data/benchmark/labels_ground_truth.json` (41 adjudicated techniques)
+  - Independent Annotators: `data/benchmark/annotator_1_labels.json`, `data/benchmark/annotator_2_labels.json`
+  - Standalone Metric Computation Script: `scripts/compute_metrics.py` (CLI reproducible evaluation)
 - **Unit & Integration Test Proof:** 84 passing tests executed with Python 3.14 on Windows via `pytest core-api/tests/`:
-  - `test_mitre.py`: 61 test assertions verifying rule specificity, scoring weights, and event normalization.
+  - `test_mitre.py`: 61 test assertions verifying rule specificity (32 rule specifications, 49 signatures), scoring weights, and event normalization.
   - `test_scoring.py`: 8 test assertions verifying additive severity formulas and monotonic score guarantees.
   - `test_correlation.py`: 11 test assertions verifying session deduplication, cross-honeypot correlation, and unique constraints.
-  - `test_evaluation_benchmark.py`: 4 comprehensive test assertions validating inter-annotator Kappa, ablation performance, baseline superiority, and NAT/boundary correlation accuracy.
+  - `test_evaluation_benchmark.py`: 4 comprehensive test assertions validating inter-annotator Kappa ($\kappa = 0.9600$), ablation performance, baseline superiority, and NAT/boundary correlation accuracy.
