@@ -113,6 +113,8 @@ EVENT_TYPE_RULES: List[Tuple[str, Tuple[str, float]]] = [
     ("sip", ("T1190 - Exploit Public-Facing Application", 4.0)),
     ("vnc", ("T1190 - Exploit Public-Facing Application", 4.0)),
     ("upnp", ("T1190 - Exploit Public-Facing Application", 4.0)),
+    ("redis", ("T1110 - Brute Force", 2.0)),
+    ("smtp", ("T1071.003 - Application Layer Protocol: Mail Protocols", 2.0)),
     ("dns", ("T1046 - Network Service Discovery", 1.0)),
     ("scan", ("T1046 - Network Service Discovery", 1.0)),
     ("pcap", ("T1046 - Network Service Discovery", 1.0)),

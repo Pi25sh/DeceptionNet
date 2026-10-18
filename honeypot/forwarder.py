@@ -15,61 +15,287 @@ CORE_API_URL = os.environ.get("CORE_API_URL", "http://core-api:8000/events")
 HONEYPOT_NAME = os.environ.get("HONEYPOT_NAME", "cowrie")
 
 
+def process_cowrie_line(event):
+    """Process a single Cowrie log event."""
+    event_id = event.get('eventid')
+    session = event.get('session')
+
+    payload = None
+
+    if event_id == 'cowrie.login.success':
+        payload = {
+            "session_id": session,
+            "event_type": "login",
+            "timestamp": event.get('timestamp'),
+            "src_ip": event.get('src_ip'),
+            "username": event.get('username'),
+            "password": event.get('password'),
+            "message": f"Successful login by {event.get('username')}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_id == 'cowrie.login.failed':
+        payload = {
+            "session_id": session,
+            "event_type": "login_failed",
+            "timestamp": event.get('timestamp'),
+            "src_ip": event.get('src_ip'),
+            "username": event.get('username'),
+            "password": event.get('password'),
+            "message": f"Failed login by {event.get('username')}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_id == 'cowrie.command.input':
+        payload = {
+            "session_id": session,
+            "event_type": "command",
+            "timestamp": event.get('timestamp'),
+            "src_ip": event.get('src_ip'),
+            "input": event.get('input'),
+            "message": f"Executed command: {event.get('input')}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_id == 'cowrie.session.file_download':
+        payload = {
+            "session_id": session,
+            "event_type": "download",
+            "timestamp": event.get('timestamp'),
+            "src_ip": event.get('src_ip'),
+            "url": event.get('url'),
+            "outfile": event.get('outfile'),
+            "message": f"Downloaded file from {event.get('url')}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_id == 'cowrie.session.file_upload':
+        payload = {
+            "session_id": session,
+            "event_type": "file_upload",
+            "timestamp": event.get('timestamp'),
+            "src_ip": event.get('src_ip'),
+            "url": event.get('url'),
+            "outfile": event.get('outfile'),
+            "message": f"Uploaded file to {event.get('url')}",
+            "honeypot": HONEYPOT_NAME,
+        }
+
+    return payload
+
+
+def process_dionaea_line(event):
+    """Process a single Dionaea log event.
+
+    Dionaea logs have a different structure:
+    {
+      "timestamp": "2024-01-15T10:30:00Z",
+      "connection": {
+        "protocol": "tcp",
+        "service": "smb",
+        "src_ip": "192.168.1.100",
+        "dst_ip": "192.168.1.50",
+        "src_port": 12345,
+        "dst_port": 445
+      },
+      "event": "shellcode" | "download" | "login" | "login_failed" | "scan" | ...
+      ...
+    }
+    """
+    conn = event.get('connection', {})
+    event_type = event.get('event')
+    session = event.get('session') or event.get('connection', {}).get('src_ip', 'unknown')
+    timestamp = event.get('timestamp')
+    src_ip = conn.get('src_ip')
+    service = conn.get('service', 'unknown')
+    protocol = conn.get('protocol', 'unknown')
+
+    payload = None
+
+    if event_type == 'shellcode':
+        payload = {
+            "session_id": session,
+            "event_type": "shellcode",
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "message": f"Shellcode detected on {service}/{protocol} from {src_ip}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_type == 'download':
+        download = event.get('download', {})
+        payload = {
+            "session_id": session,
+            "event_type": "download",
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "url": download.get('url'),
+            "outfile": download.get('file'),
+            "message": f"Downloaded file from {download.get('url')} via {service}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_type == 'login':
+        login = event.get('login', {})
+        payload = {
+            "session_id": session,
+            "event_type": "login",
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "username": login.get('user'),
+            "password": login.get('pass'),
+            "message": f"Login attempt on {service}: {login.get('user')}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_type == 'login_failed':
+        login = event.get('login', {})
+        payload = {
+            "session_id": session,
+            "event_type": "login_failed",
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "username": login.get('user'),
+            "password": login.get('pass'),
+            "message": f"Failed login on {service}: {login.get('user')}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_type in ('scan', 'pcap', 'dns'):
+        payload = {
+            "session_id": session,
+            "event_type": event_type,
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "message": f"{event_type.capitalize()} detected on {service}/{protocol} from {src_ip}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_type == 'sip':
+        payload = {
+            "session_id": session,
+            "event_type": "sip",
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "message": f"SIP connection from {src_ip}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_type == 'upnp':
+        payload = {
+            "session_id": session,
+            "event_type": "upnp",
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "message": f"UPnP connection from {src_ip}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_type == 'vnc':
+        payload = {
+            "session_id": session,
+            "event_type": "vnc",
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "message": f"VNC connection from {src_ip}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_type == 'ftp':
+        ftp = event.get('ftp', {})
+        payload = {
+            "session_id": session,
+            "event_type": "ftp",
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "message": f"FTP command: {ftp.get('cmd')}",
+            "honeypot": HONEYPOT_NAME,
+        }
+
+    return payload
+
+
+def process_decoy_line(event):
+    """Process a single custom-decoy log event.
+
+    The custom decoy writes JSON with the same structure as Dionaea
+    (connection.service / connection.src_ip) but different event types:
+    http, login_failed, redis, smtp.
+    """
+    conn = event.get("connection", {})
+    event_type = event.get("event")
+    session = event.get("session") or conn.get("src_ip", "unknown")
+    timestamp = event.get("timestamp")
+    src_ip = conn.get("src_ip")
+    service = conn.get("service", "unknown")
+    protocol = conn.get("protocol", "unknown")
+    message = event.get("message", "")
+
+    payload = None
+
+    if event_type == "login_failed":
+        login = event.get("login", {})
+        payload = {
+            "session_id": session,
+            "event_type": "login_failed",
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "username": login.get("user"),
+            "password": login.get("pass"),
+            "message": message or f"Failed login on {service}: {login.get('user')}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_type in ("http", "redis", "smtp", "dns"):
+        payload = {
+            "session_id": session,
+            "event_type": event_type,
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "message": message or f"{event_type.upper()} interaction from {src_ip}",
+            "honeypot": HONEYPOT_NAME,
+        }
+    elif event_type in ("scan", "shellcode", "download"):
+        payload = {
+            "session_id": session,
+            "event_type": event_type,
+            "timestamp": timestamp,
+            "src_ip": src_ip,
+            "service": service,
+            "protocol": protocol,
+            "message": message or f"{event_type} detected on {service} from {src_ip}",
+            "honeypot": HONEYPOT_NAME,
+        }
+
+    return payload
+
+
 def process_log_line(line):
     try:
         event = json.loads(line)
-        event_id = event.get('eventid')
-        session = event.get('session')
 
         payload = None
 
-        # We only forward the events that carry attacker intent for the MVP.
-        if event_id == 'cowrie.login.success':
-            payload = {
-                "session_id": session,
-                "event_type": "login",
-                "timestamp": event.get('timestamp'),
-                "src_ip": event.get('src_ip'),
-                "username": event.get('username'),
-                "password": event.get('password'),
-                "message": f"Successful login by {event.get('username')}",
-                "honeypot": HONEYPOT_NAME,
-            }
-        elif event_id == 'cowrie.login.failed':
-            payload = {
-                "session_id": session,
-                "event_type": "login_failed",
-                "timestamp": event.get('timestamp'),
-                "src_ip": event.get('src_ip'),
-                "username": event.get('username'),
-                "password": event.get('password'),
-                "message": f"Failed login by {event.get('username')}",
-                "honeypot": HONEYPOT_NAME,
-            }
-        elif event_id == 'cowrie.command.input':
-            payload = {
-                "session_id": session,
-                "event_type": "command",
-                "timestamp": event.get('timestamp'),
-                "src_ip": event.get('src_ip'),
-                "input": event.get('input'),
-                "message": f"Executed command: {event.get('input')}",
-                "honeypot": HONEYPOT_NAME,
-            }
-        elif event_id == 'cowrie.session.file_download':
-            payload = {
-                "session_id": session,
-                "event_type": "download",
-                "timestamp": event.get('timestamp'),
-                "src_ip": event.get('src_ip'),
-                "url": event.get('url'),
-                "outfile": event.get('outfile'),
-                "message": f"Downloaded file from {event.get('url')}",
-                "honeypot": HONEYPOT_NAME,
-            }
+        # Branch by honeypot type (set via HONEYPOT_NAME env var)
+        if HONEYPOT_NAME == "dionaea":
+            payload = process_dionaea_line(event)
+        elif HONEYPOT_NAME == "custom-decoy":
+            payload = process_decoy_line(event)
+        else:
+            # Default: Cowrie
+            payload = process_cowrie_line(event)
 
         if payload:
-            logger.info(f"Forwarding event: {payload['event_type']} from {session}")
+            logger.info(f"Forwarding event: {payload['event_type']} from {payload['session_id']}")
             try:
                 response = requests.post(CORE_API_URL, json=payload, timeout=5)
                 response.raise_for_status()
@@ -133,5 +359,5 @@ def tail_file(file_path):
 
 
 if __name__ == "__main__":
-    logger.info("Starting log forwarder...")
+    logger.info(f"Starting log forwarder for {HONEYPOT_NAME}...")
     tail_file(COWRIE_LOG_FILE)

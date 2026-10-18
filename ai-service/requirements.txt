@@ -2,3 +2,7 @@ fastapi==0.109.2
 uvicorn==0.27.1
 pydantic==2.6.1
 anthropic==0.19.1
+faiss-cpu==1.8.0
+sentence-transformers==3.0.1
+requests==2.31.0
+numpy==1.26.4

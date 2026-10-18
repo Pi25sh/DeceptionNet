@@ -7,4 +7,7 @@ fpdf2==2.7.7
 psycopg2-binary==2.9.9
 # Required by uvicorn for WebSocket support (/ws/live-events)
 websockets==12.0
-
+# Auth dependencies
+PyJWT==2.8.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6

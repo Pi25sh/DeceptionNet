@@ -14,7 +14,8 @@ dist-ssr/
 .claude/
 
 # Generated artifacts (PDF reports, logs, dev DBs)
-data/
+data/*
+!data/benchmark/
 *.log
 *.db
 

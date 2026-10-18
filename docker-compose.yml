@@ -19,6 +19,11 @@ services:
     networks:
       - deceptionnet
 
+  # ---------------------------------------------------------------------------
+  # Honeypots — isolated on honeypot_net ONLY.  They cannot reach core-api,
+  # ai-service, or dashboard.  The log-forwarder containers bridge both
+  # networks so they can tail honeypot logs AND post events to core-api.
+  # ---------------------------------------------------------------------------
   honeypot:
     image: cowrie/cowrie:latest
     ports:
@@ -27,9 +32,40 @@ services:
       - cowrie_logs:/cowrie/cowrie-git/var/log/cowrie
     restart: unless-stopped
     networks:
-      - deceptionnet
+      - honeypot_net          # isolated — no access to core-api / ai / dashboard
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:2222 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
-  log-forwarder:
+  dionaea:
+    image: dinotools/dionaea:latest
+    ports:
+      - "2121:21"     # FTP
+      - "4242:42"     # MSSQL
+      - "5060:5060"   # SIP
+      - "5060:5060/udp"
+      - "33478:3478"   # STUN
+      - "33478:3478/udp"
+    volumes:
+      - dionaea_logs:/var/log/dionaea
+    restart: unless-stopped
+    networks:
+      - honeypot_net          # isolated — no access to core-api / ai / dashboard
+    healthcheck:
+      test: ["CMD-SHELL", "dionaea --version || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ---------------------------------------------------------------------------
+  # Log forwarders — bridge between honeypot_net (read logs) and deceptionnet
+  # (post events to core-api).  This is the ONLY path honeypot data can flow.
+  # ---------------------------------------------------------------------------
+  log-forwarder-cowrie:
     build:
       context: ./honeypot
       dockerfile: Dockerfile.forwarder
@@ -40,8 +76,32 @@ services:
       - core-api
     restart: unless-stopped
     networks:
-      - deceptionnet
+      - honeypot_net          # can read cowrie logs
+      - deceptionnet          # can POST events to core-api
+    environment:
+      HONEYPOT_NAME: "cowrie"
+      COWRIE_LOG_FILE: "/var/log/cowrie/cowrie.json"
 
+  log-forwarder-dionaea:
+    build:
+      context: ./honeypot
+      dockerfile: Dockerfile.forwarder
+    volumes:
+      - dionaea_logs:/var/log/dionaea:ro
+    depends_on:
+      - dionaea
+      - core-api
+    restart: unless-stopped
+    networks:
+      - honeypot_net          # can read dionaea logs
+      - deceptionnet          # can POST events to core-api
+    environment:
+      HONEYPOT_NAME: "dionaea"
+      COWRIE_LOG_FILE: "/var/log/dionaea/dionaea.json"
+
+  # ---------------------------------------------------------------------------
+  # Backend services — deceptionnet only (never reachable from honeypots)
+  # ---------------------------------------------------------------------------
   core-api:
     build: ./core-api
     ports:
@@ -77,14 +137,122 @@ services:
       - "3000:3000"
     depends_on:
       - core-api
+    environment:
+      VITE_PROXY_TARGET: http://core-api:8000
     restart: unless-stopped
+    volumes:
+      - ./dashboard/src:/app/src
+      - ./dashboard/public:/app/public
+      - ./dashboard/index.html:/app/index.html
+      - ./dashboard/vite.config.js:/app/vite.config.js
     networks:
       - deceptionnet
 
+  # ---------------------------------------------------------------------------
+  # Custom catch-all decoy — simulates protocol gaps not covered by Cowrie or
+  # Dionaea (HTTP admin panels, Redis, SMTP).  Logs to a shared volume that
+  # its own forwarder tails and ships to core-api.
+  # ---------------------------------------------------------------------------
+  custom-decoy:
+    build: ./custom-decoy
+    ports:
+      - "8080:8080"   # HTTP admin panel decoy
+      - "16379:6379"  # Redis-like decoy (mapped to 16379 to avoid conflict)
+      - "2525:25"     # SMTP decoy
+    volumes:
+      - decoy_logs:/var/log/decoy
+    restart: unless-stopped
+    networks:
+      - honeypot_net          # isolated — same network as the real honeypots
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health')\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  log-forwarder-decoy:
+    build:
+      context: ./honeypot
+      dockerfile: Dockerfile.forwarder
+    volumes:
+      - decoy_logs:/var/log/decoy:ro
+    depends_on:
+      - custom-decoy
+      - core-api
+    restart: unless-stopped
+    networks:
+      - honeypot_net          # can read decoy logs
+      - deceptionnet          # can POST events to core-api
+    environment:
+      HONEYPOT_NAME: "custom-decoy"
+      COWRIE_LOG_FILE: "/var/log/decoy/decoy.json"
+
+  # ---------------------------------------------------------------------------
+  # Attack Target Lab — an intentionally vulnerable web app you hit with real
+  # attack traffic (SQLi, command injection, LFI, XSS, brute force). It writes
+  # interaction logs to a shared volume that its own forwarder ships to
+  # core-api, so attacks show up as live sessions on the dashboard — real logs,
+  # not the seeded demo data. Isolated on honeypot_net like the other decoys.
+  # ---------------------------------------------------------------------------
+  attack-target:
+    build: ./attack-target
+    ports:
+      - "9090:9090"   # HTTP web app — point curl / browser / sqlmap / hydra here
+    volumes:
+      - target_logs:/var/log/attack-target
+    restart: unless-stopped
+    networks:
+      - honeypot_net          # isolated — cannot reach core-api / ai / dashboard
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:9090/health')\" || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  log-forwarder-target:
+    build:
+      context: ./attack-target
+      dockerfile: Dockerfile.forwarder
+    volumes:
+      - target_logs:/var/log/attack-target:ro
+    depends_on:
+      - attack-target
+      - core-api
+    restart: unless-stopped
+    networks:
+      - honeypot_net          # can read attack-target logs
+      - deceptionnet          # can POST events to core-api
+    environment:
+      HONEYPOT_NAME: "attack-target"
+      TARGET_LOG_FILE: "/var/log/attack-target/target.jsonl"
+
+  # ---------------------------------------------------------------------------
+  # Attacker — a throwaway host for launching attacks at the lab targets. It
+  # shares honeypot_net with the decoys (realistic "outside the DMZ" position)
+  # but has NO route to core-api / ai-service / dashboard. Run scripts with:
+  #   docker compose exec attacker bash
+  # ---------------------------------------------------------------------------
+  attacker:
+    build: ./attacker
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - honeypot_net
+
 volumes:
   cowrie_logs:
+  dionaea_logs:
+  decoy_logs:
+  target_logs:
   postgres_data:
 
 networks:
+  # Honeypot-only network — isolated from backend services.
+  honeypot_net:
+    driver: bridge
+  # Backend network — forwarders, core-api, ai-service, dashboard.
   deceptionnet:
     driver: bridge

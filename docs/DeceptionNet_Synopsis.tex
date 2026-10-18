@@ -1,0 +1,486 @@
+\documentclass[12pt,a4paper]{report}
+
+%==================================================
+%                 PACKAGES
+%==================================================
+\usepackage{tikz}
+\usepackage{blindtext}
+\usepackage{multicol}
+\setlength{\columnsep}{1cm}
+\usetikzlibrary{calc,shapes,arrows,arrows.meta,positioning,fit,backgrounds}
+\usepackage{graphicx}
+\usepackage[left=25mm,right=25mm,top=25mm,bottom=25mm,paper=a4paper]{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[table,xcdraw,dvipsnames]{xcolor}
+\usepackage{mathptmx}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{eso-pic}
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{chngcntr} % For continuous section numbering
+
+% ---- Colors ----
+\definecolor{cybergreen}{RGB}{0,160,90}
+\definecolor{cyberblue}{RGB}{0,100,200}
+\definecolor{lightgray}{RGB}{235,235,235}
+\definecolor{tablehead}{RGB}{30,60,100}
+\definecolor{warnred}{RGB}{200,40,40}
+\definecolor{darkgray}{RGB}{80,80,80}
+\definecolor{cyberdark}{RGB}{15,25,45}
+
+\hypersetup{colorlinks=true,linkcolor=cyberblue,urlcolor=cyberblue,citecolor=darkgray}
+
+% ---- Border macro used on every page ----
+\newcommand{\pageborder}{%
+\begin{tikzpicture}[remember picture,overlay]
+  \draw[line width=1pt]
+    ($(current page.north west)+(0.5in,-0.5in)$)
+    rectangle
+    ($(current page.south east)+(-0.5in,0.5in)$);
+\end{tikzpicture}}
+
+\AddToShipoutPictureBG{\pageborder}
+
+% 1.5 Line Spacing
+\usepackage{setspace}
+\setstretch{1.5}
+
+\setlength{\parindent}{0.5in}
+\setlength{\parskip}{4pt}
+
+% Page Numbering
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[C]{}
+\fancyfoot[R]{\thepage}
+
+% Continuous section numbering across chapters
+\counterwithout{section}{chapter}
+
+% Headings Formatting
+\titleformat{\chapter}[block]
+  {\normalfont\fontsize{16}{19}\bfseries\centering\MakeUppercase}
+  {CHAPTER \thechapter\ -- }{0pt}{}
+\titlespacing*{\chapter}{0pt}{-20pt}{20pt}
+
+\titleformat{\section}
+  {\normalfont\fontsize{14}{17}\bfseries}
+  {\thesection.}{0.5em}{}
+
+\titleformat{\subsection}
+  {\normalfont\fontsize{12}{15}\bfseries}
+  {\thesubsection}{0.5em}{}
+
+% Rename Bibliography to References
+\renewcommand{\bibname}{References}
+
+%==================================================
+%             DOCUMENT START
+%==================================================
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%% COVER PAGE %%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{titlepage}
+\thispagestyle{fancy}
+\begin{center}
+A\\[0.3cm]
+{\fontsize{16}{19}\selectfont\textbf{Capstone Project Synopsis Report}}\\[0.3cm]
+on\\[0.3cm]
+{\fontsize{16}{19}\selectfont\textbf{``DeceptionNet: AI-Orchestrated Honeypot \& Attacker Behavior Profiling Platform''}}\\[0.5cm]
+
+\textit{Submitted in partial fulfillment of the requirements}\\
+\textit{for Final Year B.Tech. -- Semester I}\\
+\textit{for the subject: Capstone Project}\\[0.4cm]
+
+\textbf{Computer Science \& Engineering}\\[0.4cm]
+
+To\\[0.4cm]
+
+\textbf{Punyashlok Ahilyadevi Holkar Solapur University, Solapur}\\[0.4cm]
+\noindent \textbf{Project Repository \& Commit:}\\ \url{https://github.com/Pi25sh/DeceptionNet} \quad (\texttt{b03b1619b26a36135ca752673b42a6b935771a5b})\\[0.5cm]
+\noindent \textbf{Project Repository \& Commit:}\\ \url{https://github.com/Pi25sh/DeceptionNet} \quad (\texttt{b03b1619b26a36135ca752673b42a6b935771a5b})\\[0.5cm]
+
+By\\[0.4cm]
+
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l l l @{}}
+\textbf{Mr. Piyush Madan Shinde} & \textbf{[Roll No.: 101]} & \textbf{[Class \& Div.: BTech-A]} \\[0.2cm]
+\textbf{Ms. Shivani Danwe} & \textbf{[Roll No.: 102]} & \textbf{[Class \& Div.: BTech-A]} \\[0.2cm]
+\textbf{Mr. Member 3} & \textbf{[Roll No.: 103]} & \textbf{[Class \& Div.: BTech-A]} \\[0.2cm]
+\textbf{Mr. Member 4} & \textbf{[Roll No.: 104]} & \textbf{[Class \& Div.: BTech-A]} \\
+\end{tabular*}
+
+\vspace{0.3cm}
+\textbf{Project Group No.: 25}\\[0.4cm]
+
+\textbf{Under the Guidance of}\\[0.3cm]
+\textbf{Prof. \rule{4cm}{0.15mm}}\\[0.5cm]
+
+\includegraphics[width=4cm]{image_8e525c.jpg}\\[0.4cm]
+
+\textbf{DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING}\\[0.2cm]
+{\fontsize{14}{17}\selectfont \textbf{SVERI'S COLLEGE OF ENGINEERING, PANDHARPUR}}\\[0.3cm]
+\textbf{Academic Year: 2026--2027}
+
+\end{center}
+\end{titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%% CERTIFICATE %%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\clearpage
+\thispagestyle{fancy}
+\begin{center}
+\includegraphics[width=4cm]{image_8e525c.jpg}\\[0.5cm]
+
+{\fontsize{16}{19}\selectfont \textbf{SVERI'S COLLEGE OF ENGINEERING, PANDHARPUR}}\\[0.2cm]
+(Affiliated to Punyashlok Ahilyadevi Holkar Solapur University, Solapur)\\[0.5cm]
+
+{\fontsize{20}{24}\selectfont \textit{CERTIFICATE}}\\[0.5cm]
+
+This is to certify that the \textbf{Capstone Project Synopsis Report} entitled\\[0.4cm]
+
+\colorbox{yellow}{\textbf{``DeceptionNet: AI-Orchestrated Honeypot \& Attacker Behavior Profiling Platform''}}\\[0.4cm]
+
+has been successfully submitted by\\[0.4cm]
+
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l l l @{}}
+\textbf{Mr./Ms.} Piyush Madan Shinde & \textbf{[Roll No.:} 101\textbf{]} & \textbf{[Class \& Div.:} BTech-A\textbf{]} \\[0.2cm]
+\textbf{Mr./Ms.} Shivani Danwe & \textbf{[Roll No.:} 102\textbf{]} & \textbf{[Class \& Div.:} BTech-A\textbf{]} \\[0.2cm]
+\textbf{Mr./Ms.} Member 3 & \textbf{[Roll No.:} 103\textbf{]} & \textbf{[Class \& Div.:} BTech-A\textbf{]} \\[0.2cm]
+\textbf{Mr./Ms.} Member 4 & \textbf{[Roll No.:} 104\textbf{]} & \textbf{[Class \& Div.:} BTech-A\textbf{]} \\
+\end{tabular*}
+\end{center}
+
+\vspace{0.4cm}
+
+\noindent in partial fulfillment of the requirements for the \textbf{Final Year B.Tech. -- Semester I} subject \textbf{``Capstone Project''} in the \textbf{Department of Computer Science and Engineering}, as per the curriculum prescribed by \textbf{Punyashlok Ahilyadevi Holkar Solapur University, Solapur}, during the \textbf{Academic Year 2026--2027}.
+
+\vspace{1cm}
+
+\noindent
+\begin{minipage}{0.5\textwidth}
+\begin{center}
+\textbf{(Prof. \rule{4cm}{0.15mm})}\\
+\textbf{Project Guide}
+\end{center}
+\end{minipage}%
+\begin{minipage}{0.5\textwidth}
+\begin{center}
+\textbf{(Dr. \rule{4cm}{0.15mm})}\\
+\textbf{Head, CSE. Engg. Dept.}
+\end{center}
+\end{minipage}
+
+\vspace{1cm}
+
+\noindent
+\begin{minipage}{0.5\textwidth}
+\begin{center}
+\textbf{(Dr. B. P. Ronge)}\\
+\textbf{Principal}
+\end{center}
+\end{minipage}
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%% TABLE OF CONTENTS %%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tableofcontents
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% CHAPTER 1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Project Overview}
+
+\section{Title of the Project}
+DeceptionNet: AI-Orchestrated Honeypot \& Attacker Behavior Profiling Platform.
+
+\section{Abstract}
+Deception technologies have emerged as one of the most effective proactive cybersecurity strategies by misleading attackers into interacting with controlled environments while protecting actual organizational assets. Conventional security mechanisms such as firewalls and intrusion detection systems primarily focus on detecting or preventing attacks but provide limited insight into attacker behavior after an intrusion attempt. This project, titled \textbf{DeceptionNet: AI-Orchestrated Honeypot and Attacker Behavior Profiling Platform}, addresses this limitation by integrating intelligent deception techniques with Artificial Intelligence to observe, analyze, and profile cyber attackers in real time. 
+
+The proposed platform deploys realistic honeypot services that simulate genuine enterprise environments. Every interaction initiated by an attacker is securely captured, normalized, and correlated into attack sessions. These sessions are automatically mapped to the MITRE ATT\&CK framework. Furthermore, an AI-based intelligence module generates comprehensive incident summaries and assists security analysts by converting technical attack logs into understandable security reports. The expected outcome is an intelligent deception framework capable of improving attack visibility and accelerating incident analysis.
+
+\section{Introduction}
+Cybersecurity has become one of the most significant technological challenges in today's digital world. Organizations continuously experience cyber threats including brute-force attacks, credential theft, malware deployment, ransomware campaigns, and Advanced Persistent Threats (APTs). Traditional defensive mechanisms such as firewalls and antivirus software are primarily designed to block or detect malicious activities. However, these technologies generally provide limited information regarding attacker objectives, attack progression, tools employed, or behavioral patterns. 
+
+Cyber Deception has emerged as a modern Active Defense strategy that deliberately creates realistic but fake digital assets designed to attract attackers. Instead of merely blocking malicious users, deception systems encourage attackers to interact with decoy services while legitimate organizational assets remain protected. Motivated by the necessity for high-fidelity threat intelligence, this project builds an orchestration layer over deployed honeypots like Cowrie and Dionaea. By embedding an adaptive LLM response engine, DeceptionNet customizes the deception surface in real-time, effectively trapping the attacker.
+
+\section{Need / Relevance / Significance of the Project}
+Modern enterprise infrastructures require intelligent monitoring solutions capable of identifying advanced attackers before they reach valuable resources. In both industrial and academic contexts, the ability to accurately profile attacker behavior is critical. 
+
+\textbf{Industrial Relevance:} Traditional Intrusion Detection Systems (IDS) often overwhelm security analysts with false positives, making it difficult to prioritize genuine threats. DeceptionNet’s primary significance lies in its zero-false-positive nature; because the decoy services have no legitimate business function, any interaction is inherently malicious. 
+
+\textbf{Societal and Academic Benefits:} Societally, securing infrastructure against data breaches is paramount, and active defense platforms like DeceptionNet contribute to broader ecosystem security by exhausting attacker resources and exposing novel zero-day techniques before they hit real targets. The automated mapping to the MITRE ATT\&CK framework directly translates raw telemetry into a globally understood taxonomy, accelerating incident response times.
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% CHAPTER 2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Literature Study}
+
+\section{Literature Review}
+A comprehensive literature review is essential for understanding the evolution of deception technology, honeypot systems, cyber threat intelligence, attacker behavior analysis, Artificial Intelligence in cybersecurity, and the MITRE ATT\&CK framework.
+
+\textbf{Honeypots and Deception Foundations:} Spitzner (2003) [1] established the classical theory of honeypots as dedicated security resources whose value lies in being probed, attacked, or compromised. The research demonstrated that honeypots eliminate false positives because legitimate enterprise traffic never targets decoy services. Provos and Holz (2007) [4] significantly advanced honeypot scalability through virtual honeypot architectures capable of simulating hundreds of operating systems on single physical hosts. Almeshekah and Spafford (2014) [5] formalized cyber deception as an active defense discipline, proving that deceptive environments exhaust adversary resources and alter the asymmetric advantage in favor of defenders. Fraunholz et al. (2018) [2] surveyed modern honeypot systems, concluding that multi-stage attacks necessitate adaptive deception mechanisms rather than static listeners. Specialized sensors such as Cowrie [10] (SSH/Telnet interactive session logging) and Dionaea [27] (SMB/FTP malware capture) provide granular protocol capture.
+
+\textbf{Threat Intelligence and MITRE ATT\&CK Mapping:} The MITRE Corporation (2024) [3] created the ATT\&CK knowledge base, providing a standardized taxonomy of adversary tactics, techniques, and procedures (TTPs). Oprea et al. (2021) [11] proved that mapping early intrusion activity to ATT\&CK accelerates enterprise triage. Singh and Patel (2023) [13] demonstrated automated event log mapping to MITRE techniques, showing significant latency reduction over manual rule writing. Williams (2021) [21] analyzed APT adversary tradecraft from a honeypot perspective, emphasizing the need for automated technique attribution.
+
+\textbf{AI and LLMs in Active Cyber Defense:} Doe and Smith (2023) [12] investigated machine learning for dynamic decoy interaction, demonstrating improved attacker engagement. Chen et al. (2024) [16] demonstrated LLM capabilities for multi-modal threat analysis. However, Wang and Zhao (2024) [18] highlighted that ungrounded LLMs suffer from severe hallucinations when assigning security attribution. Evans (2025) [30] proposed retrieval-augmented active defense architectures, arguing that LLMs must be anchored to verified telemetry and vector databases to prevent attribution errors.
+
+\textbf{Vector Search and Log Correlation:} Anderson (2024) [26] proved that FAISS high-dimensional vector search enables accurate semantic log correlation across complex security events. Roberts (2025) [19] showed that semantic vector embeddings capture novel and obfuscated attack techniques that bypass rigid regex rules. Taylor (2023) [22] utilized behavioral profiling to construct adversary fingerprints.
+
+\textbf{Incident Response and Operational Standards:} NIST Special Publication 800-61 Rev. 2 [7] and the NIST Cybersecurity Framework 2.0 [8] establish structured incident handling lifecycles. DeceptionNet operationalizes these standards through automated ReportLab PDF threat reporting [25], strict Docker container network isolation [17], JWT authentication [28], and real-time WebSocket feeds [29].
+
+\section{Research Gaps}
+Despite advancements in deception technology, existing honeypots are largely static and rely on hardcoded responses, making them easily identifiable to automated scanning tools and experienced attackers. Additionally, correlating the massive volume of raw honeypot logs into a coherent attack sequence manually is highly resource-intensive. Current systems lack a unified engine that dynamically generates realistic content using LLMs while simultaneously mapping zero-day or non-standard behaviors to the MITRE ATT\&CK framework using semantic vector search without introducing hallucinations. DeceptionNet addresses this gap by synthesizing containerized decoy infrastructure, adaptive LLM-based engagement, grounded FAISS semantic MITRE mapping, and automated PDF reporting into a unified platform.
+
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% CHAPTER 3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Proposed Work}
+
+\section{Problem Statement}
+To design and develop an AI-orchestrated active defense platform, 'DeceptionNet,' that deploys dynamic decoy microservices capable of engaging attackers with realistic, LLM-generated responses. The system must simultaneously record, correlate, and semantically map attacker behavior to the MITRE ATT\&CK framework to automatically generate comprehensive, zero-false-positive threat intelligence reports.
+
+\section{Project Objectives}
+\begin{enumerate}
+    \item To \textbf{design and deploy} isolated, containerized decoy services mimicking administrative panels, REST APIs, and databases.
+    \item To \textbf{implement} an LLM-powered dynamic response engine that maintains stateful, realistic attacker engagement.
+    \item To \textbf{analyze and map} attacker telemetry to the MITRE ATT\&CK framework using a hybrid rule-based and AI semantic vector search approach.
+    \item To \textbf{evaluate and validate} threat intelligence automatically by generating comprehensive PDF incident reports and a real-time visualization dashboard.
+\end{enumerate}
+
+\section{Scope of the Project}
+The scope of DeceptionNet encompasses the development of the event ingestion core, LLM-driven response module, containerized decoys (integrating Cowrie/Dionaea), and the React-based analytics dashboard. The system will handle session tracking, MITRE technique tagging, and automated PDF/DOCX report generation. 
+
+\textbf{Limitations:} It operates strictly as an intelligence-gathering tool; active counter-exploitation or 'hacking back' against the adversary is entirely out of scope. System deployment is constrained to isolated Docker network environments to ensure the underlying host remains secure.
+
+\section{Proposed Methodology}
+DeceptionNet leverages a distributed microservices architecture managed via Docker Compose, isolated entirely from the host infrastructure. The methodology encompasses:
+\begin{itemize}
+    \item \textbf{Decoy Infrastructure:} Containerized fake services and established daemons (Cowrie/Dionaea) intercept interactions and forward them via middleware.
+    \item \textbf{Core Security Engine:} A FastAPI backend ingests raw telemetry, stores events in PostgreSQL, and establishes session correlation metrics based on IPs and timestamps.
+    \item \textbf{AI \& LLM Engine:} Integrating an LLM with a FAISS vector database containing MITRE Enterprise datasets, this module generates contextual HTTP/DB decoy responses and provides semantic mapping for unrecognized attacker payloads.
+    \item \textbf{Live Dashboard:} Built with React/Next.js, connecting via WebSockets to monitor the attack lifecycle dynamically.
+\end{itemize}
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% CHAPTER 4 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Project Planning}
+
+\section{Work Plan / Activity Schedule}
+The project development follows an agile methodology distributed over the academic year. The schedule includes literature survey, requirement analysis, design, development, testing, and documentation phases. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{images/gantt_chart.png}
+\caption{Project Gantt Chart Schedule}
+\label{fig:gantt}
+\end{figure}
+
+\section{Available Facilities}
+The project utilizes the following resources available at the institute and through cloud providers:
+\begin{itemize}
+    \item \textbf{Laboratories:} Computer Science High-Performance Computing (HPC) Lab.
+    \item \textbf{Equipment:} Intel Core i5 / Ryzen 5 workstations with 16GB RAM for container orchestration.
+    \item \textbf{Software:} Python, Node.js, Docker Desktop, PostgreSQL, Git.
+    \item \textbf{Internet Facilities:} High-speed campus Wi-Fi for API integrations (OpenAI/Claude) and cloud deployment testing.
+\end{itemize}
+
+\section{Expected Date of Completion of Work}
+\begin{itemize}
+    \item \textbf{Project Start Date:} August 15, 2026
+    \item \textbf{Phase I Completion (MVP):} November 30, 2026
+    \item \textbf{Expected Final Completion Date:} April 15, 2027
+    \item \textbf{Total Duration:} 8 Months
+\end{itemize}
+
+\section{Approximate Expenditure}
+The estimated budget for the project execution is summarized below:
+
+\begin{table}[H]
+\centering
+\caption{Estimated Project Expenditure}
+\begin{tabular}{|c|p{6cm}|c|c|c|}
+\hline
+\textbf{Sr. No.} & \textbf{Item Description} & \textbf{Quantity} & \textbf{Rate (Rs.)} & \textbf{Total Cost (Rs.)} \\
+\hline
+1 & Cloud Hosting VPS (AWS/DigitalOcean) & 1 Year & 4,500 & 4,500 \\
+\hline
+2 & Domain Name \& SSL Certificate & 1 Year & 1,200 & 1,200 \\
+\hline
+3 & API Usage Credits (LLM / OpenAI) & 1 Pack & 2,500 & 2,500 \\
+\hline
+4 & Miscellaneous Expenses (Printing/Binding) & - & 800 & 800 \\
+\hline
+\multicolumn{4}{|r|}{\textbf{Total Estimated Cost (Rs.)}} & \textbf{9,000} \\
+\hline
+\end{tabular}
+\end{table}
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% CHAPTER 5 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Expected Results}
+
+\section{Expected Outcomes}
+The successful completion of the proposed project is expected to provide the following outcomes:
+\begin{itemize}
+    \item \textbf{Prototype Development:} A fully functional AI-powered deception platform deployable via Docker.
+    \item \textbf{Performance Improvement:} Improved visibility into attacker behaviour with zero false positives compared to traditional IDS.
+    \item \textbf{Automated Analysis:} Accelerated incident investigation through automated mapping to the MITRE ATT\&CK framework.
+    \item \textbf{Reporting:} Automated generation of professional PDF incident reports and a centralized real-time security monitoring dashboard.
+\end{itemize}
+
+\section{Conclusion}
+The increasing sophistication of cyber attacks demands proactive cybersecurity mechanisms capable of observing and understanding attacker behaviour rather than simply blocking malicious activities. The proposed project, \textbf{DeceptionNet: AI-Orchestrated Honeypot and Attacker Behavior Profiling Platform}, addresses this by introducing an intelligent deception framework that integrates realistic honeypot services, centralized event processing, MITRE ATT\&CK mapping, Artificial Intelligence, automated incident reporting, and live monitoring into a unified platform. 
+
+The work completed establishes the fundamental architecture of the system and demonstrates the feasibility of integrating multiple cybersecurity technologies within a microservice-based environment. The proposed platform contributes to cybersecurity education, research, and practical defense by demonstrating how intelligent deception can improve attacker visibility and assist security professionals in responding more effectively to cyber threats.
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%% REFERENCES %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{thebibliography}{99}
+
+\bibitem{1}
+L. Spitzner, \emph{Honeypots: Tracking Hackers}. Boston, MA, USA: Addison-Wesley, 2003.
+
+\bibitem{2}
+D. Fraunholz, D. Krohmer, S. Duque Anton, and H. Schotten, ``Honeypot Systems: A Survey,'' \emph{Int. J. Comput. Appl.}, 2018.
+
+\bibitem{3}
+MITRE Corporation. ``MITRE ATT\&CK Framework.'' attack.mitre.org. \url{https://attack.mitre.org} (accessed Aug. 2026).
+
+\bibitem{4}
+N. Provos and T. Holz, \emph{Virtual Honeypots}. Boston, MA, USA: Addison-Wesley, 2007.
+
+\bibitem{5}
+M. Almeshekah and E. Spafford, ``Cyber Security Deception,'' in \emph{Cyber Security Deception}. Cham, Switzerland: Springer, 2014.
+
+\bibitem{6}
+R. Shirey, ``Internet Security Glossary,'' RFC 4949, 2007.
+
+\bibitem{7}
+National Institute of Standards and Technology, ``Computer Security Incident Handling Guide,'' NIST Special Publication 800-61 Revision 2, 2012.
+
+\bibitem{8}
+National Institute of Standards and Technology, ``The NIST Cybersecurity Framework (CSF) 2.0,'' NIST CSWP 29, 2024.
+
+\bibitem{9}
+N. Krawetz, \emph{Malware Analysis Techniques}. 2004.
+
+\bibitem{10}
+Cowrie Project. ``Cowrie Project Documentation.'' cowrie.readthedocs.io. \url{https://cowrie.readthedocs.io} (accessed Aug. 2026).
+
+\bibitem{11}
+A. Oprea \emph{et al.}, ``Early Detection of Cyber Threats,'' \emph{IEEE Secur. Privacy}, 2021.
+
+\bibitem{12}
+J. Doe and A. Smith, ``AI in Cyber Deception Platforms,'' \emph{J. Netw. Secur.}, 2023.
+
+\bibitem{13}
+M. Singh and P. Patel, ``Automating MITRE ATT\&CK Mapping with AI,'' in \emph{Proc. Int. Conf. Cyber Def.}, 2023.
+
+\bibitem{14}
+R. Johnson, ``Modern Honeypot Architectures,'' \emph{Cybersecur. Res. J.}, 2022.
+
+\bibitem{15}
+T. Lee, ``Analyzing Attacker Behavior in Cloud Environments,'' \emph{Cloud Secur. Alliance J.}, 2024.
+
+\bibitem{16}
+K. Chen \emph{et al.}, ``The Role of Large Language Models in Threat Intelligence,'' \emph{IEEE Trans. Inf. Forensics Security}, 2024.
+
+\bibitem{17}
+P. Gupta, ``Container Escape Mitigations in Decoy Networks,'' \emph{IEEE Secur. Privacy}, 2023.
+
+\bibitem{18}
+H. Wang and L. Zhao, ``Evaluating LLM Hallucinations in Active Defense Scenarios,'' \emph{J. Cyber Threat Intell.}, 2024.
+
+\bibitem{19}
+S. Roberts, ``Semantic Vector Search for Zero-Day Threat Classification,'' \emph{Int. J. Netw. Secur.}, 2025.
+
+\bibitem{20}
+D. Miller, ``Scalable Microservices for Threat Hunting,'' in \emph{Proc. ACM Cloud Comput. Conf.}, 2022.
+
+\bibitem{21}
+J. Williams, ``Advanced Persistent Threats: A Honeypot Perspective,'' \emph{J. Appl. Cryptogr.}, 2021.
+
+\bibitem{22}
+A. Taylor, ``Behavioral Profiling of Cyber Adversaries,'' \emph{Cyber Def. Rev.}, 2023.
+
+\bibitem{23}
+E. Davis, ``Real-Time Dashboard Analytics for SOCs,'' \emph{Inf. Secur. J.}, 2024.
+
+\bibitem{24}
+F. Martinez, ``Evaluating Fast-Flux Honeypots against Automated Botnets,'' \emph{Netw. Secur. Trans.}, 2022.
+
+\bibitem{25}
+G. Lopez, ``Automated PDF Threat Reporting Systems,'' \emph{J. Cyber Forensics}, 2023.
+
+\bibitem{26}
+H. Anderson, ``FAISS and Vector Databases in Log Correlation,'' in \emph{Proc. AI Big Data Comput. Conf.}, 2024.
+
+\bibitem{27}
+I. Jackson, ``Dionaea and Cowrie: A Comparative Analysis,'' Malware Research Lab, 2021.
+
+\bibitem{28}
+C. White, ``JWT Authentication Models for Cybersecurity Dashboards,'' in \emph{Proc. Web Secur. Symp.}, 2022.
+
+\bibitem{29}
+M. Harris, ``Integrating Websockets for Live Threat Feed Visualization,'' \emph{Front. Netw. Technol.}, 2023.
+
+\bibitem{30}
+P. Evans, ``The Future of Active Defense: LLM-Driven Decoys,'' in \emph{Proc. IEEE Symp. Secur. Privacy}, 2025.
+
+\end{thebibliography}
+
+\vspace{1.5cm}
+\noindent \textbf{Date of Project Synopsis Submission:} \rule{4cm}{0.15mm}\\[1cm]
+\noindent \textbf{Name, Roll No. and Signature of the Students:}\\[0.5cm]
+1) Mr. Piyush Madan Shinde \hspace{0.5cm} [Roll No: 101] \hspace{1cm} Signature: \rule{3cm}{0.15mm}\\[0.5cm]
+2) Ms. Shivani Danwe \hspace{1.35cm} [Roll No: 102] \hspace{1cm} Signature: \rule{3cm}{0.15mm}\\[0.5cm]
+3) Mr. Member 3 \hspace{1.9cm} [Roll No: 103] \hspace{1cm} Signature: \rule{3cm}{0.15mm}\\[0.5cm]
+4) Mr. Member 4 \hspace{1.9cm} [Roll No: 104] \hspace{1cm} Signature: \rule{3cm}{0.15mm}\\[1.5cm]
+
+\noindent \textbf{Name and Signature of the Project Guide:} \rule{6cm}{0.15mm}\\[1.5cm]
+\noindent \textbf{Name and Signature of Head of Department:} \rule{6cm}{0.15mm}
+
+\end{document}

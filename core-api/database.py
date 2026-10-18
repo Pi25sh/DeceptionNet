@@ -4,6 +4,8 @@ from sqlalchemy.exc import OperationalError
 import datetime
 import os
 import time
+import hashlib
+import secrets
 
 # Default to PostgreSQL (primary store). Tests / local dev can override with SQLite.
 DATABASE_URL = os.environ.get(
@@ -79,6 +81,58 @@ class SessionTechnique(Base):
     detected_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     session = relationship("AttackSession", back_populates="techniques")
+
+
+class Report(Base):
+    """Metadata for a generated incident report (PDF).
+
+    Lets the dashboard show a history of generated reports and re-download any
+    of them without regenerating. The PDF body is written to disk by main.py;
+    this row tracks where it is, when it was made, and who made it.
+    """
+
+    __tablename__ = "reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String, ForeignKey("sessions.id"), index=True)
+    filename = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
+    generated_at = Column(DateTime, default=datetime.datetime.utcnow)
+    file_size = Column(Integer, default=0)
+    generated_by = Column(String, nullable=True)  # dashboard username
+
+    session = relationship("AttackSession")
+
+
+class User(Base):
+    """User account for dashboard authentication."""
+
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+    salt = Column(String, nullable=False)
+    role = Column(String, default="analyst")  # "admin" | "analyst"
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    last_login = Column(DateTime, nullable=True)
+
+    @staticmethod
+    def hash_password(password: str, salt: str = None) -> tuple[str, str]:
+        """Hash a password with salt. Returns (hash, salt)."""
+        if salt is None:
+            salt = secrets.token_hex(16)
+        pwdhash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+        return pwdhash.hex(), salt
+
+    def set_password(self, password: str):
+        """Set password hash and salt."""
+        self.password_hash, self.salt = self.hash_password(password)
+
+    def verify_password(self, password: str) -> bool:
+        """Verify a password against stored hash and salt."""
+        pwdhash = hashlib.pbkdf2_hmac('sha256', password.encode(), self.salt.encode(), 100000)
+        return secrets.compare_digest(pwdhash.hex(), self.password_hash)
 
 
 def get_db():
