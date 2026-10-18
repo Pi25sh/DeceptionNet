@@ -43,7 +43,7 @@ def test_every_rule_has_positive_weight():
 REPRESENTATIVE_COMMANDS = [
     ("whoami", "T1033"),
     ("id", "T1033"),
-    ("uname -a", "T1033"),
+    ("uname -a", "T1082"),
     ("cat /etc/passwd", "T1003.008"),
     ("cat /etc/shadow", "T1003.008"),
     ("cat /etc/sudoers", "T1003.008"),
@@ -107,7 +107,7 @@ def test_non_matching_command_returns_no_technique():
         ("login", "T1078"),
         ("login_failed", "T1110"),
         ("download", "T1105"),
-        ("file_upload", "T1048.003"),
+        ("file_upload", "T1505.003"),
         ("smb", "T1210"),
         ("shellcode", "T1210"),
         ("http_request", "T1190"),

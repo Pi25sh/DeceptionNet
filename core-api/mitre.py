@@ -89,8 +89,13 @@ MITRE_RULES: List[dict] = [
         "weight": 1.0,
     },
     {
-        "keywords": ["whoami", "id", "uname"],
+        "keywords": ["whoami", "id"],
         "technique": "T1033 - System Owner/User Discovery",
+        "weight": 1.0,
+    },
+    {
+        "keywords": ["uname"],
+        "technique": "T1082 - System Information Discovery",
         "weight": 1.0,
     },
 ]
@@ -104,7 +109,8 @@ EVENT_TYPE_RULES: List[Tuple[str, Tuple[str, float]]] = [
     ("login_failed", ("T1110 - Brute Force", 0.5)),
     ("login.success", ("T1078 - Valid Accounts", 1.0)),
     ("login", ("T1078 - Valid Accounts", 1.0)),
-    ("file_upload", ("T1048.003 - Exfiltration Over Alternative Protocol", 3.0)),
+    ("sqli", ("T1190 - Exploit Public-Facing Application", 4.0)),
+    ("file_upload", ("T1505.003 - Server Software Component: Web Shell", 3.0)),
     ("download", ("T1105 - Ingress Tool Transfer", 3.0)),
     ("shellcode", ("T1210 - Exploitation of Remote Services", 5.0)),
     ("smb", ("T1210 - Exploitation of Remote Services", 5.0)),

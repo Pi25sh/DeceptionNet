@@ -128,3 +128,54 @@ class TestUpsertTechnique:
             SessionTechnique.session_id == "s1"
         ).all()
         assert len(rows) == 1  # losing insert absorbed, winner intact
+
+    def test_concurrent_upsert_technique_threads(self, tmp_path):
+        """Simulate concurrent threads calling upsert_technique with the same technique.
+        Verifies begin_nested savepoints and unique constraints under multithreaded execution."""
+        import threading
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        from database import Base
+
+        db_file = tmp_path / "test_concurrency.db"
+        engine = create_engine(f"sqlite:///{db_file}", connect_args={"timeout": 30})
+        Base.metadata.create_all(engine)
+        with engine.connect() as conn:
+            conn.exec_driver_sql("PRAGMA journal_mode=WAL;")
+
+        SessionFactory = sessionmaker(bind=engine)
+        init_db = SessionFactory()
+        init_db.add(AttackSession(
+            id="conc-test", src_ip="198.51.100.99",
+            start_time=datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None),
+            end_time=datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None),
+            severity_score=0.0, honeypot="cowrie"
+        ))
+        init_db.commit()
+        init_db.close()
+
+        def worker():
+            db = SessionFactory()
+            try:
+                upsert_technique(db, "conc-test", "T1078", 1.0, "rule")
+                db.commit()
+            except Exception:
+                db.rollback()
+            finally:
+                db.close()
+
+        threads = [threading.Thread(target=worker) for _ in range(8)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        check_db = SessionFactory()
+        rows = check_db.query(SessionTechnique).filter(
+            SessionTechnique.session_id == "conc-test",
+            SessionTechnique.technique == "T1078"
+        ).all()
+        check_db.close()
+        engine.dispose()
+        assert len(rows) == 1
+

@@ -33,11 +33,11 @@ def to_core_payload(event):
             "message": msg,
             "honeypot": HONEYPOT_NAME,
         }
-    if et == "login":
+    if et in ("login", "sqli"):
         login = event.get("login", {})
         return {
             "session_id": event["session"],
-            "event_type": "login",
+            "event_type": et,
             "timestamp": event["timestamp"],
             "src_ip": src_ip,
             "service": "http",

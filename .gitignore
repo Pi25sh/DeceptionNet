@@ -18,6 +18,7 @@ data/*
 !data/benchmark/
 *.log
 *.db
+!results/*.db
 
 # OS/editor noise
 .DS_Store

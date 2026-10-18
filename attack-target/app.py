@@ -154,11 +154,11 @@ def _to_core_payload(event):
             "message": msg,
             "honeypot": "attack-target",
         }
-    if et == "login":
+    if et in ("login", "sqli"):
         login = event.get("login", {})
         return {
             "session_id": event["session"],
-            "event_type": "login",
+            "event_type": et,
             "timestamp": event["timestamp"],
             "src_ip": src_ip,
             "service": "http",
@@ -361,22 +361,27 @@ def login():
     password = request.form.get("password", "")
 
     if login_is_valid(username, password):
-        # Whether it's the real creds or a SQLi bypass, from the defender's
-        # point of view this is a successful (and exploited) login -> T1078.
         sql_bypass = SQLI_BYPASS.search(username) or SQLI_BYPASS.search(password)
-        note = " (SQL injection bypass)" if sql_bypass else ""
         # Pin this connection to one attack session so follow-up requests (that
         # carry this cookie back) escalate the SAME session on the dashboard.
         sid = current_sid(ip)
         session["sid"] = sid
-        write_target_event(
-            "login",
-            ip,
-            f"Successful login on /login: {username}{note}"
-            + (f" SQLi payload: {username or password}" if sql_bypass else ""),
-            extra={"login": {"user": username, "pass": password}},
-            sid=sid,
-        )
+        if sql_bypass:
+            write_target_event(
+                "sqli",
+                ip,
+                f"SQL injection login bypass on /login: {username} SQLi payload: {username or password}",
+                extra={"login": {"user": username, "pass": password}},
+                sid=sid,
+            )
+        else:
+            write_target_event(
+                "login",
+                ip,
+                f"Successful login on /login: {username}",
+                extra={"login": {"user": username, "pass": password}},
+                sid=sid,
+            )
         return render(LOGO="Vertex Bank Employee Portal",
                       LOGIN_MSG=f"<p style='color:#9fe8a8'>Welcome back, {username}!</p>",
                       PING_OUT="", READ_OUT="", SEARCH_OUT="", UPLOAD_OUT="")
