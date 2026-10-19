@@ -6,7 +6,7 @@ This document serves as the authoritative, repo-grounded Claim Ledger for Decept
 
 | Claim ID | Claim Description | Grounded Value | Source File / Code Construct | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **SYS-01** | Pinned Git Commit SHA | `c18885798469d798bd2533affad279724c4662ab` | `git rev-parse HEAD` | **Verified** |
+| **SYS-01** | Pinned Git Commit SHA | `d2043241af35a28af4c368748d05fb5570c6685d` | `git rev-parse HEAD` | **Verified** |
 | **SYS-02** | Core API Web Framework | FastAPI 0.109.2 | `core-api/requirements.txt:L1` (`fastapi==0.109.2`) | **Verified** |
 | **SYS-03** | ORM Framework | SQLAlchemy 2.0.25 | `core-api/requirements.txt:L3` (`sqlalchemy==2.0.25`) | **Verified** |
 | **SYS-04** | ASGI Server | Uvicorn 0.27.1 | `core-api/requirements.txt:L2` (`uvicorn==0.27.1`) | **Verified** |

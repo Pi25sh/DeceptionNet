@@ -80,7 +80,7 @@ def generate_manuscript(output_path):
         "[NEED FROM AUTHOR: Author email addresses]\n"
         "[NEED FROM AUTHOR: Project Supervisor name, department, institution]\n"
         "[NEED FROM AUTHOR: Target venue, template, and page limit]\n"
-        "Repository: https://github.com/Pi25sh/DeceptionNet (pinned commit c18885798469d798bd2533affad279724c4662ab)"
+        "Repository: https://github.com/Pi25sh/DeceptionNet (pinned commit d2043241af35a28af4c368748d05fb5570c6685d)"
     )
     r_aff.italic = True
     r_aff.font.size = Pt(9.5)
@@ -566,7 +566,7 @@ def generate_manuscript(output_path):
     p_dec.add_run("• Data and Code Availability: ").bold = True
     p_dec.add_run(
         "All source code, Docker configurations, test suites, raw database dumps, and container execution logs are publicly available in the GitHub "
-        "repository: https://github.com/Pi25sh/DeceptionNet (pinned commit c18885798469d798bd2533affad279724c4662ab)."
+        "repository: https://github.com/Pi25sh/DeceptionNet (pinned commit d2043241af35a28af4c368748d05fb5570c6685d)."
     )
 
     # References
