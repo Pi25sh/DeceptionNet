@@ -417,6 +417,89 @@ def generate_sn_manuscript(output_path):
         "PostgreSQL Storage → Live WebSocket Broadcast → Operator Dashboard & Post-Capture AI Incident Report (PDF)."
     )
 
+    add_h2("6.1 Sample System Output and Live Demo Trace")
+    doc.add_paragraph(
+        "The figures below present authentic operational outputs captured during live execution of the DeceptionNet active defense "
+        "pipeline across the Docker Compose testbed. They demonstrate end-to-end execution: from adversary attack script initiation, "
+        "through real-time telemetry streaming and threat scoring on the operator dashboard, to automated post-capture incident report synthesis."
+    )
+
+    # Figure 1: Attack Harness Terminal Execution
+    fig1_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "results", "live_attack_terminal.png"))
+    if os.path.exists(fig1_path):
+        p_f1 = doc.add_paragraph()
+        p_f1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        doc.add_picture(fig1_path, width=Inches(5.8))
+        p_f1_cap = doc.add_paragraph()
+        p_f1_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_f1_cap = p_f1_cap.add_run(
+            "Fig. 1: Live multi-stage attack simulation execution — Automated attack script (attacker/scripts/full-attack.sh) "
+            "executing inside the containerized attacker environment (172.21.0.5), chaining SQLi authentication bypass, brute-force "
+            "credential guessing, command injection, path traversal, reflected XSS, and web shell upload."
+        )
+        r_f1_cap.italic = True
+        r_f1_cap.font.size = Pt(8.5)
+        p_f1_cap.paragraph_format.space_after = Pt(6)
+
+    doc.add_paragraph(
+        "Figure 1 illustrates the live execution of the multi-stage attack harness within the attacker container (172.21.0.5). "
+        "The harness executes six sequential attack stages against the vulnerable web decoy (attack-target:9090). In Stage 1, an SQL "
+        "injection payload (admin'--) bypasses authentication, and curl stores the resulting session cookie into a local cookie-jar. "
+        "In Stage 2, five unauthenticated credential-guessing attempts are launched without cookies; each generates an independent "
+        "session logged at severity 0.5. In Stages 3 through 6, post-exploitation payloads present the stored session cookie, enabling "
+        "DeceptionNet to bind all subsequent exploitation events—including system reconnaissance (whoami, uname), credential dumping "
+        "(/etc/passwd), file retrieval, reflected XSS, and PHP web shell upload—into a single persistent campaign session."
+    )
+
+    # Figure 2: Live Operator Dashboard
+    fig2_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "shots", "dashboard-main.png"))
+    if os.path.exists(fig2_path):
+        p_f2 = doc.add_paragraph()
+        p_f2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        doc.add_picture(fig2_path, width=Inches(5.8))
+        p_f2_cap = doc.add_paragraph()
+        p_f2_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_f2_cap = p_f2_cap.add_run(
+            "Fig. 2: DeceptionNet live operator dashboard — Real-time telemetry feed displaying isolated and correlated decoy sessions, "
+            "source IP attribution, monotonic additive threat severity scores (Critical tier: 26.0), and automated MITRE ATT&CK technique tags."
+        )
+        r_f2_cap.italic = True
+        r_f2_cap.font.size = Pt(8.5)
+        p_f2_cap.paragraph_format.space_after = Pt(6)
+
+    doc.add_paragraph(
+        "Figure 2 displays the operator web dashboard streaming live telemetry over WebSockets. Each incoming decoy event is evaluated "
+        "by the deterministic MITRE ATT&CK rule engine in under 0.06 ms. As the adversary progresses through the attack chain, the session "
+        "card dynamically updates: positively identified techniques (e.g., T1003.008, T1078, T1505.003) appear as color-coded badges, and "
+        "the cumulative severity score increases monotonically. The primary campaign session escalates from 4.0 (Elevated) to 26.0 (Critical), "
+        "triggering prominent visual alerts for security operations staff, while unauthenticated brute-force probes remain isolated in the Low tier."
+    )
+
+    # Figure 3: Generated Incident Report
+    fig3_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "results", "incident_report_preview.png"))
+    if os.path.exists(fig3_path):
+        p_f3 = doc.add_paragraph()
+        p_f3.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        doc.add_picture(fig3_path, width=Inches(5.8))
+        p_f3_cap = doc.add_paragraph()
+        p_f3_cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_f3_cap = p_f3_cap.add_run(
+            "Fig. 3: Decoupled AI threat intelligence and automated incident report — Generated post-capture incident summary compiling "
+            "chronological session events, verified ATT&CK techniques, and operator triage recommendations without exposing generative "
+            "models to the live execution loop."
+        )
+        r_f3_cap.italic = True
+        r_f3_cap.font.size = Pt(8.5)
+        p_f3_cap.paragraph_format.space_after = Pt(6)
+
+    doc.add_paragraph(
+        "Figure 3 demonstrates the output of the decoupled AI reporting service (ai-service). Once a session is concluded or flagged "
+        "for analysis, an analyst can trigger automated PDF report generation. The AI engine synthesizes committed events into an "
+        "executive incident summary, details session timelines and metadata, and tabulates verified ATT&CK techniques. To guarantee "
+        "fidelity, every semantic recommendation is passed through a lexical grounding filter, verifying that technique keywords "
+        "(> 3 characters) appear in raw event logs before inclusion in the final report."
+    )
+
     # VII. Comparative Analysis
     add_h1("VII. Comparative Analysis")
     doc.add_paragraph(
@@ -727,8 +810,13 @@ def generate_sn_manuscript(output_path):
         p_ref.runs[0].font.size = Pt(9)
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    doc.save(output_path)
-    print(f"SN Computer Science manuscript generated successfully at: {output_path}")
+    try:
+        doc.save(output_path)
+        print(f"SN Computer Science manuscript generated successfully at: {output_path}")
+    except PermissionError:
+        alt_path = os.path.join(os.path.dirname(output_path), "DeceptionNet_SN_Computer_Science_Manuscript.docx")
+        doc.save(alt_path)
+        print(f"Warning: {output_path} is locked by another process (e.g. Word). Saved to: {alt_path}")
 
     words = abstract_text.split()
     print(f"Abstract word count: {len(words)} words (Requirement: 150-200 words)")
@@ -736,5 +824,15 @@ def generate_sn_manuscript(output_path):
 
 
 if __name__ == "__main__":
-    out_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "docs", "DeceptionNet_Submission_Manuscript.docx"))
+    out_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "docs", "DeceptionNet_SN_Computer_Science_Manuscript.docx"))
     generate_sn_manuscript(out_file)
+
+    # Also attempt updating Submission Manuscript if not locked
+    sub_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "docs", "DeceptionNet_Submission_Manuscript.docx"))
+    try:
+        import shutil
+        shutil.copyfile(out_file, sub_file)
+        print(f"Also synchronized: {sub_file}")
+    except Exception as e:
+        print(f"Note: Could not copy to {sub_file} ({e}).")
+
