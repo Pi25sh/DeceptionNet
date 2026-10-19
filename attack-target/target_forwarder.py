@@ -87,6 +87,15 @@ def to_core_payload(event):
             "message": msg,
             "honeypot": HONEYPOT_NAME,
         }
+    if et == "scan":
+        return {
+            "session_id": event["session"],
+            "event_type": "scan",
+            "timestamp": event["timestamp"],
+            "src_ip": src_ip,
+            "message": msg,
+            "honeypot": HONEYPOT_NAME,
+        }
     return None
 
 
