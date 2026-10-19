@@ -1,12 +1,12 @@
 """Script to build the submission-ready DeceptionNet manuscript as a professionally formatted .docx document.
 Strictly adheres to all integrity rules:
-- Grounded claims from the Claim Ledger only.
+- Grounded claims from the committed Claim Ledger (docs/CLAIM_LEDGER.md) only.
 - Honest case study provenance: REAL_RUN (Docker network harness execution committed to results/).
 - Pinned versions match requirements.txt and package.json exactly.
-- Empirical timing benchmark from results/rule_latency_benchmark.json.
-- Fully verified 23 references with exact authors, venues, years, DOIs, and URLs.
+- Empirical timing benchmark with hardware/OS/Python specs in Section 6.3.
+- Fully verified 23 topically relevant references with exact authors, venues, years, DOIs, and URLs.
 - Abstract between 150 and 200 words.
-- All missing author and venue details clearly isolated as [NEED FROM AUTHOR: ...].
+- All missing author, supervisor, funding, and venue details clearly isolated as [NEED FROM AUTHOR: ...].
 """
 import os
 import json
@@ -14,7 +14,7 @@ import docx
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
+from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
@@ -78,8 +78,9 @@ def generate_manuscript(output_path):
         "SVERI's College of Engineering, Pandharpur\n"
         "Affiliated with Punyashlok Ahilyadevi Holkar Solapur University, Solapur, Maharashtra, India\n"
         "[NEED FROM AUTHOR: Author email addresses]\n"
-        "[NEED FROM AUTHOR: Target venue and template specification]\n"
-        "Repository: https://github.com/Pi25sh/DeceptionNet"
+        "[NEED FROM AUTHOR: Project Supervisor name, department, institution]\n"
+        "[NEED FROM AUTHOR: Target venue, template, and page limit]\n"
+        "Repository: https://github.com/Pi25sh/DeceptionNet (pinned commit c18885798469d798bd2533affad279724c4662ab)"
     )
     r_aff.italic = True
     r_aff.font.size = Pt(9.5)
@@ -97,7 +98,7 @@ def generate_manuscript(output_path):
     r_abs_h = p_abs.add_run("Abstract—")
     r_abs_h.bold = True
 
-    # Abstract text: strictly 150-200 words
+    # Abstract text: strictly 150-200 words (checked via split())
     abstract_text = (
         "Modern enterprise cyber defense increasingly incorporates deception technology to lure, observe, and delay adversaries "
         "before they compromise production assets. However, standalone honeypots often present operational challenges: telemetry "
@@ -169,15 +170,17 @@ def generate_manuscript(output_path):
     p_gaps.add_run("2. Semantic Attribution Overhead: ").bold = True
     p_gaps.add_run(
         "Translating raw shell commands, HTTP payloads, and connection probes into standardized threat intelligence (such as the "
-        "MITRE ATT&CK enterprise matrix [6]) often relies on manual post-hoc analyst triage, creating an operational bottleneck "
-        "during high-volume automated attacks.\n"
+        "MITRE ATT&CK enterprise matrix [6], Version 14.1 [23]) often relies on manual post-hoc analyst triage, creating an operational "
+        "bottleneck during high-volume automated attacks.\n"
     )
     p_gaps.add_run("3. Risks of Direct LLM Shell Emulation: ").bold = True
     p_gaps.add_run(
         "Recent research has explored inserting Large Language Models directly into the terminal execution loop to generate dynamic, "
-        "deceptive shell responses [7], [8]. While interactive LLM honeypots achieve high conversational realism, they introduce "
-        "severe vulnerabilities: adversaries can exploit indirect prompt injection [9] to alter system state, induce ungrounded "
-        "hallucinations [10], or execute denial-of-wallet attacks through unbounded token consumption [11]."
+        "deceptive shell responses [7], [8]. While interactive LLM honeypots achieve conversational realism, they introduce severe "
+        "vulnerabilities: adversaries can exploit indirect prompt injection [9] to alter system state, induce ungrounded hallucinations [10], "
+        "or execute denial-of-wallet attacks through unbounded token consumption [11]. Importantly, while removing generative models from "
+        "interactive terminal sockets prevents live hijacking, any post-capture summarizer that processes attacker-controlled logs remains "
+        "exposed to passive prompt injection and context contamination [22]."
     )
     doc.add_paragraph(
         "To resolve these challenges without incurring the hazards of interactive generative execution, this work presents "
@@ -201,7 +204,7 @@ def generate_manuscript(output_path):
     p_contrib.add_run(
         "We provide an 84-test automated pytest verification suite covering correlation invariants, database concurrency savepoints, "
         "and rule boundaries, alongside an end-to-end multi-stage attack case study executed across the live Docker compose network "
-        "capturing 14 events across 6 sessions (campaign severity 26.0)."
+        "capturing 14 events across 6 sessions (campaign severity 26.0), backed by the committed Claim Ledger."
     )
 
     # Section 2
@@ -218,7 +221,7 @@ def generate_manuscript(output_path):
         "novel exploit payloads but carry significant risk of host compromise and lateral pivot [15]. Specialized medium-interaction "
         "systems, such as Cowrie [4] for SSH/Telnet and Dionaea [5] for binary payload capture, balance interactivity and safety. "
         "Multi-honeypot distributions like T-Pot [16] package disparate daemons into a unified appliance but rely on heavyweight "
-        "ELK stacks that do not natively map commands to standardized MITRE ATT&CK technique weights."
+        "stacks that do not natively map commands to standardized MITRE ATT&CK technique weights."
     )
     add_h2("2.2 Alert Correlation and Attack Reconstruction")
     doc.add_paragraph(
@@ -238,9 +241,10 @@ def generate_manuscript(output_path):
         "conversational fidelity, they suffer from fundamental operational liabilities: Greshake et al. [9] demonstrated that "
         "adversarial inputs can trigger indirect prompt injection, Kang et al. [11] showed that programmatic LLM behaviors can be "
         "manipulated through standard security attacks, and Ji et al. [10] surveyed extensive failure modes in ungrounded text generation. "
-        "DeceptionNet fundamentally diverges from interactive LLM honeypots: rather than allowing an LLM to generate network replies, "
-        "all interactions are handled by deterministic daemons, and generative models are invoked strictly post-capture to synthesize "
-        "immutable telemetry for human operators."
+        "Furthermore, Karanjai et al. [22] showed that even in offline Security Operations Center analysis, security logs containing "
+        "untrusted attacker strings can poison LLM summarization through passive prompt injection (context contamination). "
+        "DeceptionNet addresses the interactive hazard by removing LLMs entirely from live network sockets: all interactions are handled "
+        "by deterministic daemons, and generative models operate strictly on stored, immutable telemetry for analyst summarization."
     )
 
     # Section 3
@@ -264,7 +268,7 @@ def generate_manuscript(output_path):
     # Section 4
     add_h1("4. System Design")
     doc.add_paragraph(
-        "DeceptionNet comprises five interconnected microservices partitioned across dual Docker networks, as illustrated in the system architecture:"
+        "DeceptionNet comprises five interconnected microservices partitioned across dual Docker networks:"
     )
 
     p_comp = doc.add_paragraph()
@@ -318,16 +322,7 @@ def generate_manuscript(output_path):
         "(weight 3.0), and 'shellcode' -> T1210 (weight 5.0)."
     )
 
-    add_h2("4.2 Empirical Rule Evaluation Latency")
-    doc.add_paragraph(
-        "To establish empirical verification for rule engine performance, an automated benchmark script (scripts/benchmark_rule_latency.py) "
-        "executed 140,000 evaluations (10,000 iterations across a 14-item corpus of attack payloads, event types, and noise commands) using "
-        "high-resolution hardware performance counters (time.perf_counter_ns). The rule engine achieved a mean evaluation latency of "
-        "10.56 µs (0.011 ms), a median of 2.50 µs, a 95th percentile of 34.10 µs, and a 99th percentile of 58.10 µs (0.058 ms). The raw "
-        "statistical distribution is committed under results/rule_latency_benchmark.json."
-    )
-
-    add_h2("4.3 Monotonic Additive Severity Scoring")
+    add_h2("4.2 Monotonic Additive Severity Scoring")
     doc.add_paragraph(
         "Session threat severity is computed as an incremental additive function over positively identified technique weights:\n"
         "   Severity_new = round(Severity_current + w_i, 2)  for w_i > 0\n"
@@ -337,7 +332,7 @@ def generate_manuscript(output_path):
         "retains its elevated triage priority."
     )
 
-    add_h2("4.4 Sliding-Window Session Correlation")
+    add_h2("4.3 Sliding-Window Session Correlation")
     doc.add_paragraph(
         "Session correlation is governed by get_or_create_session in core-api/main.py. The engine enforces two strict invariants:\n"
         "1. Intra-Honeypot Session Isolation: When an event arrives with an unseen session ID from a honeypot that already has an active "
@@ -348,7 +343,7 @@ def generate_manuscript(output_path):
         "most recent session, reconstructing the cross-protocol attack sequence."
     )
 
-    add_h2("4.5 Decoupled AI Threat Intelligence & Reporting")
+    add_h2("4.4 Decoupled AI Threat Intelligence & Reporting")
     doc.add_paragraph(
         "Generative AI capabilities (Google Gemini 2.5 Flash and Anthropic Claude 3 Haiku) are decoupled from interactive execution and "
         "invoked strictly on demand by SOC analysts. When requested, ai-service/main.py synthesizes committed session events into an "
@@ -380,15 +375,15 @@ def generate_manuscript(output_path):
     # Section 6
     add_h1("6. Evaluation")
     doc.add_paragraph(
-        "In accordance with strict empirical integrity, we evaluate DeceptionNet exclusively against executed unit-test suites and "
-        "a live Docker network case study. We make no claims of field deployment, detection accuracy over wild attackers, or superior "
-        "detection performance relative to external commercial tools."
+        "In accordance with strict empirical integrity, we evaluate DeceptionNet exclusively against executed unit-test suites, "
+        "a live Docker network case study, and an in-memory rule table microbenchmark. We make no claims of field deployment, "
+        "detection accuracy over wild attackers, or superior detection performance relative to external commercial tools."
     )
 
     add_h2("6.1 Automated Unit-Test Suite")
     doc.add_paragraph(
         "Platform logic is verified by an 84-test automated pytest suite in core-api/tests. All 84 tests pass with zero failures. "
-        "The per-file test breakdown is as follows:"
+        "The per-file test breakdown is summarized in Table I:"
     )
 
     # Table of tests
@@ -432,7 +427,8 @@ def generate_manuscript(output_path):
         "written to a shared volume, tailed in real time by log-forwarder-target, shipped over HTTP across the deceptionnet bridge network "
         "to core-api (port 8000), and committed into PostgreSQL. The raw evidence artifacts—including the full container log stream "
         "(results/docker_compose_logs.txt), raw PostgreSQL database dump (results/postgres_dump.sql), SQLite export (results/case_study.db), "
-        "and normalized JSON export (results/case_study_raw.json)—are committed directly to the repository."
+        "and normalized JSON export (results/case_study_raw.json)—are committed directly to the repository and documented in the "
+        "supplementary Claim Ledger (docs/CLAIM_LEDGER.md)."
     )
     doc.add_paragraph(
         "Session Binding & Campaign Mechanics: During Stage 1 (SQL injection login bypass), curl stores the signed Flask session cookie "
@@ -478,6 +474,23 @@ def generate_manuscript(output_path):
 
     doc.add_paragraph().paragraph_format.space_after = Pt(8)
 
+    add_h2("6.3 Rule Table Evaluation Latency Microbenchmark")
+    doc.add_paragraph(
+        "Scope & Testbed Specification: To establish empirical timing boundaries for the deterministic rule engine, an automated "
+        "microbenchmark script (scripts/benchmark_rule_latency.py) was executed. This is an in-memory microbenchmark measuring pure "
+        "table and regex lookup execution via Python's high-resolution performance counter (time.perf_counter_ns); it explicitly "
+        "excludes network transmission and database I/O latency. The microbenchmark was executed on a dedicated testbed host equipped "
+        "with an 11th Gen Intel(R) Core(TM) i5-11320H processor @ 3.20GHz (4 physical cores, 8 logical threads), 8 GB RAM, running "
+        "Microsoft Windows 11 (Build 26300) and Python 3.14.6 (64-bit)."
+    )
+    doc.add_paragraph(
+        "Microbenchmark Results: The evaluation executed 10,000 iterations across a representative corpus of 14 items comprising shell "
+        "attack payloads, protocol actions, and unmapped background noise (140,000 total evaluations). The rule engine achieved a mean "
+        "evaluation latency of 10.56 µs (0.01056 ms) with a standard deviation of 20.80 µs. The median latency was 2.50 µs, the 95th "
+        "percentile was 34.10 µs, and the 99th percentile was 58.10 µs (0.0581 ms). Minimum observed latency was 0.20 µs, and maximum "
+        "latency was 2,170.20 µs (2.17 ms). The full statistical breakdown is committed under results/rule_latency_benchmark.json."
+    )
+
     # Section 7
     add_h1("7. Limitations and Threats to Validity")
     doc.add_paragraph(
@@ -511,7 +524,13 @@ def generate_manuscript(output_path):
     p_lim.add_run(
         "The platform was evaluated exclusively against scripted attack harness workflows in a local Docker testbed. The system has "
         "not been subjected to unconstrained wild internet traffic, and no empirical throughput or accuracy comparisons were conducted "
-        "against commercial SIEM platforms under enterprise production loads."
+        "against commercial SIEM platforms under enterprise production loads.\n"
+    )
+    p_lim.add_run("6. Residual Passive Prompt Injection in Offline Summarization: ").bold = True
+    p_lim.add_run(
+        "Decoupling the LLM from interactive sockets prevents interactive session hijacking and runaway generation. However, because "
+        "the offline summarization engine ingests attacker-controlled strings (e.g., HTTP user agents and shell parameters), the system "
+        "remains susceptible to passive prompt injection and context contamination [9], [22] unless strict delimiter sanitization is applied."
     )
 
     # Section 8
@@ -519,14 +538,15 @@ def generate_manuscript(output_path):
     doc.add_paragraph(
         "DeceptionNet demonstrates an open-source, reproducible architecture for active cyber defense that harmonizes multi-honeypot "
         "orchestration, deterministic ATT&CK mapping, and decoupled generative threat summarization. By strictly excluding LLMs from "
-        "the live execution loop, DeceptionNet eliminates prompt injection risks and interactive hallucinations while preserving "
-        "deterministic attribution speed (mean 0.011 ms). The platform's internal consistency is validated by an 84-test automated pytest "
-        "suite, and its operational flow is demonstrated through a verified live Docker harness run capturing 14 events across 6 sessions "
-        "(cumulative campaign severity: 26.0)."
+        "the live execution loop, DeceptionNet mitigates live prompt injection risks and interactive hallucinations while preserving "
+        "deterministic attribution speed (microbenchmark mean: 10.56 µs). The platform's internal consistency is validated by an "
+        "84-test automated pytest suite, and its operational flow is demonstrated through a verified live Docker harness run capturing "
+        "14 events across 6 sessions (cumulative campaign severity: 26.0)."
     )
     doc.add_paragraph(
-        "Future work will focus on integrating de-obfuscation pre-processors for encoded shell commands, exploring zero-knowledge proof "
-        "attestation for decoy logs, and extending cross-honeypot correlation to support IPv6 subnets and BGP autonomous system boundaries."
+        "Future work will focus on integrating automated shell de-obfuscation pre-processors, extending cross-honeypot correlation "
+        "heuristics to accommodate IPv6 subnets, and investigating delimiter-hardened sanitization boundaries to protect post-capture "
+        "LLM summarizers against passive prompt injection."
     )
 
     # Declarations
@@ -534,10 +554,10 @@ def generate_manuscript(output_path):
     p_dec = doc.add_paragraph()
     p_dec.add_run("• AI-Use Disclosure: ").bold = True
     p_dec.add_run(
-        "During manuscript drafting, generative AI tools (Google Gemini / Anthropic Claude via the Antigravity coding environment) "
-        "were utilized exclusively for text synthesis, grammar refinement, and format structuring. All empirical claims, test results, "
-        "rule counts, and case-study figures were independently executed, verified against the repository codebase, and audited against "
-        "the Claim Ledger.\n"
+        "During manuscript drafting, generative AI tools (Google Gemini and Anthropic Claude via the Antigravity coding environment) "
+        "were utilized for drafting text, refining grammatical clarity, and structuring document formatting. All empirical claims, "
+        "test counts, rule numbers, and case-study figures were independently executed, grounded against repository code, and verified "
+        "against the supplementary Claim Ledger committed in docs/CLAIM_LEDGER.md.\n"
     )
     p_dec.add_run("• Conflicts of Interest: ").bold = True
     p_dec.add_run("The authors declare that they have no competing financial or non-financial interests that could have influenced this work.\n")
@@ -546,7 +566,7 @@ def generate_manuscript(output_path):
     p_dec.add_run("• Data and Code Availability: ").bold = True
     p_dec.add_run(
         "All source code, Docker configurations, test suites, raw database dumps, and container execution logs are publicly available in the GitHub "
-        "repository: https://github.com/Pi25sh/DeceptionNet."
+        "repository: https://github.com/Pi25sh/DeceptionNet (pinned commit c18885798469d798bd2533affad279724c4662ab)."
     )
 
     # References
@@ -573,7 +593,7 @@ def generate_manuscript(output_path):
         "[19] R. Sadoddin and A. A. Ghorbani, \"Alert correlation survey: Framework and techniques,\" in Proc. 2006 International Conference on Privacy, Security and Trust (PST '06), Markham, Ontario, Canada, Oct. 2006, art. 37, pp. 1–12. doi: 10.1145/1501434.1501479.",
         "[20] R. A. Bridges, T. R. Mitchell, M. Muñoz, and T. Henriksson, \"SoK: Honeypots & LLMs, more than the sum of their parts?\" arXiv preprint arXiv:2510.25939, 2025. [Online]. Available: https://arxiv.org/abs/2510.25939",
         "[21] P. Lewis, E. Perez, A. Piktus, F. Petroni, V. Karpukhin, N. Goyal, H. Küttler, M. Lewis, W. Yih, T. Rocktäschel, S. Riedel, and D. Kiela, \"Retrieval-augmented generation for knowledge-intensive NLP tasks,\" in Advances in Neural Information Processing Systems (NeurIPS 2020), vol. 33, 2020, pp. 9459–9474.",
-        "[22] M. A. Ferrag, M. Ndhlovu, N. Tihanyi, L. C. Cordeiro, M. Debbah, T. Lestable, and N. S. Thandi, \"Revolutionizing cyber threat detection with large language models: A privacy-preserving BERT-based lightweight model for IoT/IIoT devices,\" IEEE Access, vol. 12, pp. 23511–23528, 2024. doi: 10.1109/ACCESS.2024.3363469.",
+        "[22] R. Karanjai, Y. Lu, H. H. Madhavarao, L. Xu, and W. Shi, \"Context contamination in LLM analysis of network security logs: Poison with passive prompt injection and mitigation evaluation,\" arXiv preprint arXiv:2607.14493, 2026. [Online]. Available: https://arxiv.org/abs/2607.14493",
         "[23] The MITRE Corporation, \"MITRE ATT&CK Enterprise Matrix,\" Version 14.1, 2023. [Online]. Available: https://attack.mitre.org/"
     ]
     for ref in references:
