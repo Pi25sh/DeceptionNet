@@ -1,0 +1,14 @@
+{
+  "total_evaluations": 140000,
+  "iterations_per_corpus": 10000,
+  "corpus_size": 14,
+  "mean_latency_us": 10.564,
+  "median_latency_us": 2.5,
+  "stdev_latency_us": 20.799,
+  "min_latency_us": 0.2,
+  "p95_latency_us": 34.1,
+  "p99_latency_us": 58.1,
+  "max_latency_us": 2170.2,
+  "mean_latency_ms": 0.01056,
+  "p99_latency_ms": 0.0581
+}

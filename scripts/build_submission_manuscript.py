@@ -2,9 +2,11 @@
 Strictly adheres to all integrity rules:
 - Grounded claims from the Claim Ledger only.
 - Honest case study provenance: REAL_RUN (Docker network harness execution committed to results/).
-- No placeholders except [NEED FROM AUTHOR: ...] where information is missing.
+- Pinned versions match requirements.txt and package.json exactly.
+- Empirical timing benchmark from results/rule_latency_benchmark.json.
+- Fully verified 23 references with exact authors, venues, years, DOIs, and URLs.
 - Abstract between 150 and 200 words.
-- Complete coverage of system design, implementation, evaluation, limitations, declarations, and verified references.
+- All missing author and venue details clearly isolated as [NEED FROM AUTHOR: ...].
 """
 import os
 import json
@@ -76,7 +78,8 @@ def generate_manuscript(output_path):
         "SVERI's College of Engineering, Pandharpur\n"
         "Affiliated with Punyashlok Ahilyadevi Holkar Solapur University, Solapur, Maharashtra, India\n"
         "[NEED FROM AUTHOR: Author email addresses]\n"
-        "Repository: https://github.com/Pi25sh/DeceptionNet (Pinned SHA: 153c58d6b3460c7fd043651d3e302929ee463002)"
+        "[NEED FROM AUTHOR: Target venue and template specification]\n"
+        "Repository: https://github.com/Pi25sh/DeceptionNet"
     )
     r_aff.italic = True
     r_aff.font.size = Pt(9.5)
@@ -191,7 +194,7 @@ def generate_manuscript(output_path):
     )
     p_contrib.add_run("• Deterministic MITRE Attribution & Scoring: ").bold = True
     p_contrib.add_run(
-        "We define a rule engine containing 34 specifications (16 command keyword rules spanning 50 signatures and 18 event-type "
+        "We define a rule engine containing 34 specifications (16 command keyword rules spanning 49 signatures and 18 event-type "
         "normalization rules) mapping decoy interactions to 22 distinct MITRE ATT&CK techniques with monotonic additive severity scoring.\n"
     )
     p_contrib.add_run("• Reproducible Evaluation & Case Study: ").bold = True
@@ -264,7 +267,6 @@ def generate_manuscript(output_path):
         "DeceptionNet comprises five interconnected microservices partitioned across dual Docker networks, as illustrated in the system architecture:"
     )
 
-    # Architectural overview
     p_comp = doc.add_paragraph()
     p_comp.add_run("1. Honeypot Decoy Subsystem (honeypot_net):\n").bold = True
     p_comp.add_run(
@@ -290,17 +292,17 @@ def generate_manuscript(output_path):
     )
     p_comp.add_run("5. Operator Dashboard (dashboard):\n").bold = True
     p_comp.add_run(
-        "A responsive single-page web interface built with React 18 and Vite, streaming live incident feeds over WebSockets and rendering "
-        "session timelines, ATT&CK distributions, and PDF incident reports."
+        "A responsive single-page web interface built with React 18, Vite 5, Recharts, and Vanilla CSS, streaming live incident feeds "
+        "over WebSockets and rendering session timelines, ATT&CK distributions, and PDF incident reports."
     )
 
     add_h2("4.1 Deterministic MITRE ATT&CK Mapping Engine")
     doc.add_paragraph(
-        "To ensure predictable attribution latency (< 1 ms per event) and eliminate non-deterministic hallucinations during active "
-        "attacks, core-api/mitre.py evaluates incoming telemetry against a deterministic two-tier rule hierarchy:"
+        "To ensure predictable attribution latency and eliminate non-deterministic hallucinations during active attacks, "
+        "core-api/mitre.py evaluates incoming telemetry against a deterministic two-tier rule hierarchy:"
     )
     p_rules = doc.add_paragraph()
-    p_rules.add_run("• Command Keyword Rules (16 rules, 50 keywords): ").bold = True
+    p_rules.add_run("• Command Keyword Rules (16 rules, 49 signatures): ").bold = True
     p_rules.add_run(
         "Evaluates shell commands using regex word-boundary matching (\\b) to avoid sub-token false positives (e.g., ensuring 'id' "
         "matches user discovery without falsely triggering on 'rapid'). Specific rules take precedence over general ones: reading "
@@ -316,17 +318,26 @@ def generate_manuscript(output_path):
         "(weight 3.0), and 'shellcode' -> T1210 (weight 5.0)."
     )
 
-    add_h2("4.2 Monotonic Additive Severity Scoring")
+    add_h2("4.2 Empirical Rule Evaluation Latency")
+    doc.add_paragraph(
+        "To establish empirical verification for rule engine performance, an automated benchmark script (scripts/benchmark_rule_latency.py) "
+        "executed 140,000 evaluations (10,000 iterations across a 14-item corpus of attack payloads, event types, and noise commands) using "
+        "high-resolution hardware performance counters (time.perf_counter_ns). The rule engine achieved a mean evaluation latency of "
+        "10.56 µs (0.011 ms), a median of 2.50 µs, a 95th percentile of 34.10 µs, and a 99th percentile of 58.10 µs (0.058 ms). The raw "
+        "statistical distribution is committed under results/rule_latency_benchmark.json."
+    )
+
+    add_h2("4.3 Monotonic Additive Severity Scoring")
     doc.add_paragraph(
         "Session threat severity is computed as an incremental additive function over positively identified technique weights:\n"
         "   Severity_new = round(Severity_current + w_i, 2)  for w_i > 0\n"
-        "Unmapped commands or background noise contribute weight 0.0, leaving the cumulative score unchanged. As defined in the operator "
-        "dashboard, severity scores map into four operational tiers: Low (< 1.0), Elevated (1.0–2.4), High (2.5–3.9), and Critical (≥ 4.0). "
+        "Unmapped commands or background noise contribute weight 0.0, leaving the cumulative score unchanged. As defined in dashboard/src/utils.js, "
+        "severity scores map into four operational tiers: Low (< 1.0), Elevated (1.0–2.4), High (2.5–3.9), and Critical (≥ 4.0). "
         "Because the severity score is monotonically non-decreasing, once an attacker executes an exploitation step, the session permanently "
         "retains its elevated triage priority."
     )
 
-    add_h2("4.3 Sliding-Window Session Correlation")
+    add_h2("4.4 Sliding-Window Session Correlation")
     doc.add_paragraph(
         "Session correlation is governed by get_or_create_session in core-api/main.py. The engine enforces two strict invariants:\n"
         "1. Intra-Honeypot Session Isolation: When an event arrives with an unseen session ID from a honeypot that already has an active "
@@ -337,7 +348,7 @@ def generate_manuscript(output_path):
         "most recent session, reconstructing the cross-protocol attack sequence."
     )
 
-    add_h2("4.4 Decoupled AI Threat Intelligence & Reporting")
+    add_h2("4.5 Decoupled AI Threat Intelligence & Reporting")
     doc.add_paragraph(
         "Generative AI capabilities (Google Gemini 2.5 Flash and Anthropic Claude 3 Haiku) are decoupled from interactive execution and "
         "invoked strictly on demand by SOC analysts. When requested, ai-service/main.py synthesizes committed session events into an "
@@ -353,13 +364,13 @@ def generate_manuscript(output_path):
     )
     p_impl = doc.add_paragraph()
     p_impl.add_run("• Core API: ").bold = True
-    p_impl.add_run("FastAPI 0.115+, SQLAlchemy 2.0+ ORM, PostgreSQL 16 (production) or SQLite (testing), Uvicorn ASGI server.\n")
+    p_impl.add_run("FastAPI 0.109.2 (pinned in core-api/requirements.txt), SQLAlchemy 2.0.25 ORM, PostgreSQL 16 (Compose) or SQLite (testing), Uvicorn 0.27.1 ASGI server.\n")
     p_impl.add_run("• Honeypot Daemons: ").bold = True
     p_impl.add_run("Cowrie (latest Docker image), Dionaea (latest DinoTools image), Custom Decoy (Python 3.10 sockets), Attack-Target (Flask 3.1.3).\n")
     p_impl.add_run("• AI & Embedding Models: ").bold = True
     p_impl.add_run("Google Gemini 2.5 Flash API / Anthropic Claude 3 Haiku API, sentence-transformers all-MiniLM-L6-v2 (384-dim), FAISS-CPU 1.8+.\n")
     p_impl.add_run("• Operator Dashboard: ").bold = True
-    p_impl.add_run("React 18.2, Vite 5, Tailwind CSS, Native WebSocket API.\n")
+    p_impl.add_run("React 18.2.0, Vite 5.1.0, Lucide-React 0.330.0, Recharts 2.15.4, Vanilla CSS (dashboard/package.json).\n")
     p_impl.add_run("• Reproducibility Instructions: ").bold = True
     p_impl.add_run(
         "The complete environment can be launched using 'docker compose up -d'. Automated unit tests are executed using 'pytest'. "
@@ -419,8 +430,9 @@ def generate_manuscript(output_path):
         "harness (attacker/scripts/full-attack.sh) inside the running Docker Compose environment. Real network traffic was transmitted "
         "from the attacker container (172.21.0.5) across honeypot_net to the attack-target container (port 9090). Interaction logs were "
         "written to a shared volume, tailed in real time by log-forwarder-target, shipped over HTTP across the deceptionnet bridge network "
-        "to core-api (port 8000), and committed into PostgreSQL. The complete database export is committed under results/case_study_raw.json "
-        "and results/case_study.db."
+        "to core-api (port 8000), and committed into PostgreSQL. The raw evidence artifacts—including the full container log stream "
+        "(results/docker_compose_logs.txt), raw PostgreSQL database dump (results/postgres_dump.sql), SQLite export (results/case_study.db), "
+        "and normalized JSON export (results/case_study_raw.json)—are committed directly to the repository."
     )
     doc.add_paragraph(
         "Session Binding & Campaign Mechanics: During Stage 1 (SQL injection login bypass), curl stores the signed Flask session cookie "
@@ -508,7 +520,7 @@ def generate_manuscript(output_path):
         "DeceptionNet demonstrates an open-source, reproducible architecture for active cyber defense that harmonizes multi-honeypot "
         "orchestration, deterministic ATT&CK mapping, and decoupled generative threat summarization. By strictly excluding LLMs from "
         "the live execution loop, DeceptionNet eliminates prompt injection risks and interactive hallucinations while preserving "
-        "deterministic attribution speed (< 1 ms). The platform's internal consistency is validated by an 84-test automated pytest "
+        "deterministic attribution speed (mean 0.011 ms). The platform's internal consistency is validated by an 84-test automated pytest "
         "suite, and its operational flow is demonstrated through a verified live Docker harness run capturing 14 events across 6 sessions "
         "(cumulative campaign severity: 26.0)."
     )
@@ -533,8 +545,8 @@ def generate_manuscript(output_path):
     p_dec.add_run("[NEED FROM AUTHOR: Funding sources or state 'This research received no external funding']\n")
     p_dec.add_run("• Data and Code Availability: ").bold = True
     p_dec.add_run(
-        "All source code, Docker configurations, test suites, and raw case-study outputs are publicly available in the GitHub "
-        "repository: https://github.com/Pi25sh/DeceptionNet, pinned at commit SHA 153c58d6b3460c7fd043651d3e302929ee463002."
+        "All source code, Docker configurations, test suites, raw database dumps, and container execution logs are publicly available in the GitHub "
+        "repository: https://github.com/Pi25sh/DeceptionNet."
     )
 
     # References
@@ -551,8 +563,8 @@ def generate_manuscript(output_path):
         "[9] K. Greshake, S. Abdelnabi, S. Mishra, C. Endres, T. Holz, and M. Fritz, \"Not what you've signed up for: Compromising real-world LLM-integrated applications with indirect prompt injection,\" in Proc. 16th ACM Workshop on Artificial Intelligence and Security (AISEC '23), co-located with ACM CCS, 2023, pp. 79–90. doi: 10.1145/3605764.3623982.",
         "[10] Z. Ji, N. Lee, R. Frieske, T. Yu, D. Su, Y. Xu, E. Ishii, Y. J. Bang, A. Madotto, and P. Fung, \"Survey of hallucination in natural language generation,\" ACM Computing Surveys, vol. 55, no. 12, art. 248, pp. 1–38, Mar. 2023. doi: 10.1145/3571730.",
         "[11] D. Kang, X. Li, I. Stoica, C. Guestrin, M. Zaharia, and T. Hashimoto, \"Exploiting programmatic behavior of LLMs: Dual-use through standard security attacks,\" in Proc. IEEE Security and Privacy Workshops (SPW '23), 2023, pp. 132–143. doi: 10.1109/SPW59261.2023.00019.",
-        "[12] F. Cohen, \"Operating system protection through program evolution,\" Computers & Security, vol. 12, no. 6, pp. 565–584, Oct. 1993. doi: 10.1016/0167-4048(93)90054-9.",
-        "[13] F. Cohen, \"The use of deception in information protection,\" Computers & Security, vol. 19, no. 5, pp. 455–464, 2000. doi: 10.1016/S0167-4048(00)80007-9.",
+        "[12] F. Cohen, \"A note on the role of deception in information protection,\" Computers & Security, vol. 17, no. 6, pp. 483–506, 1998. doi: 10.1016/S0167-4048(98)80058-3.",
+        "[13] F. Cohen, \"A mathematical structure of simple defensive network deception,\" Computers & Security, vol. 19, no. 6, pp. 520–528, 2000. doi: 10.1016/S0167-4048(00)80026-2.",
         "[14] N. Provos, \"A virtual honeypot framework,\" in Proc. 13th USENIX Security Symposium (USENIX Security '04), San Diego, CA, USA, Aug. 2004, pp. 1–14. [Online]. Available: https://www.usenix.org/legacy/event/sec04/tech/provos.html",
         "[15] T. Holz and F. Raynal, \"Detecting honeypots and other suspicious environments,\" in Proc. 6th IEEE Information Assurance Workshop (IAW '05), West Point, NY, USA, Jun. 2005, pp. 29–36. doi: 10.1109/IAW.2005.1495930.",
         "[16] Telekom Security, \"T-Pot: The all-in-one multi-honeypot platform,\" Deutsche Telekom AG, 2015–2024. [Online]. Available: https://github.com/telekom-security/tpotce",
